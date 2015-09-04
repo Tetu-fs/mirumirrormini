@@ -25,7 +25,7 @@ Scene* MainScene::createScene()
 
 #if COCOS2D_DEBUG > 0
 	
-	world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	//world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
 #endif
 
@@ -61,7 +61,8 @@ bool MainScene::init()
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-
+			log("check");
+			_stage->setJumpFlag(true);
 		}
 
 		return true;

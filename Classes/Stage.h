@@ -10,6 +10,10 @@ protected:
 	Stage();
 	virtual ~Stage() override;
 	bool init() override;
+
+	bool leftFlag;
+	bool rightFlag;
+
 public:
 
 	enum TileType
@@ -18,13 +22,10 @@ public:
 		PLAYER = 1 << 1
 	};
 
-	bool leftFlag;
-	bool rightFlag;
-	
 	cocos2d::Vec2 _velocity;
 
+	CC_SYNTHESIZE(bool, _jumpFlag, JumpFlag);
 	CC_SYNTHESIZE_RETAIN(cocos2d::TMXTiledMap*, _tiledMap, TiledMap);
-
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CREATE_FUNC(Stage);
 	void update(float dt) override;

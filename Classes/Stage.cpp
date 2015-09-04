@@ -1,4 +1,3 @@
-
 #include "Stage.h"
 USING_NS_CC;
 
@@ -9,6 +8,7 @@ Stage::Stage()
 	, _tiledMap(nullptr)
 	, leftFlag(false)
 	, rightFlag(false)
+	, _jumpFlag(false)
 {
 
 }
@@ -21,6 +21,7 @@ Stage::~Stage()
 
 void Stage::update(float dt)
 {
+
 	//Vec2型の_velocityという変数を整数値に直す？
 	_velocity.normalize();
 	//自身の位置を、現在地＋ベクトル＊SPEEDの値にする
@@ -51,6 +52,33 @@ void Stage::update(float dt)
 	{
 		_player->setPositionY(0);
 		_velocity.y = 0;
+	}
+
+
+	auto flip = FlipX::create(true);
+	auto flipback = FlipX::create(false);
+
+	
+	if (leftFlag == true)
+	{
+		_player->playAnimation(1);
+		_player->runAction(flip);
+		_velocity.x = -2;
+
+
+	}
+
+	if (rightFlag == true)
+	{
+		_player->playAnimation(1);
+		_player->runAction(flipback);
+		_velocity.x = 2;
+	}
+
+	if (leftFlag == false && rightFlag == false)
+	{
+		_player->playAnimation(0);
+		_velocity.x = 0;
 	}
 
 }
@@ -227,19 +255,31 @@ bool Stage::init()
 			if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
 			{
 				leftFlag = true;
-				log("%d",leftFlag);
+
+				if (rightFlag == true)
+				{
+					rightFlag = false;
+				}
 			}
 			//そうではなくもし、キーが→だったら
 			if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
 			{
 				rightFlag = true;
-				log("%d", rightFlag);
+				if (leftFlag == true)
+				{
+					leftFlag = false;
+				}
 			}
 			//もし押されたキーが↑だったら
 			if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W) 
 			{
-				_player->playAnimation(2);
-				_player->getPhysicsBody()->applyImpulse(JUMP_IMPULSE);
+				log("%d", getJumpFlag());
+				if (getJumpFlag() == true)
+				{
+					_player->playAnimation(2);
+					_player->getPhysicsBody()->applyImpulse(JUMP_IMPULSE);
+					setJumpFlag(false);
+				}
 			}
 			//そうではなくもし押されたキーが↓だったら
 			else if (keyCode == EventKeyboard::KeyCode::KEY_DOWN_ARROW || keyCode == EventKeyboard::KeyCode::KEY_S)
@@ -255,12 +295,10 @@ bool Stage::init()
 		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
 		{
 			leftFlag = false;
-			log("%d", leftFlag);
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
 			rightFlag = false;
-			log("%d", rightFlag);
 		}
 		//もしも離されたキーが↑、または↓だったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_DOWN_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W || keyCode == EventKeyboard::KeyCode::KEY_S)
@@ -279,40 +317,7 @@ bool Stage::init()
 	//最後にEventDispatcherっていうものに、今作ったEventListenerを登録して、「よしなにお願いします」って伝えるstop
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyboardListener, this);
 
-	auto flip = FlipX::create(true);
-	auto flipback = FlipX::create(false);
 
-	if (leftFlag == true && rightFlag == true)
-	{
-		_player->playAnimation(0);
-		_velocity.x = 0;
-	}
-
-	if (leftFlag == true && rightFlag == false)
-	{
-		_player->playAnimation(1);
-		_player->runAction(flip);
-		_velocity.x = -2;
-		if (leftFlag == true && rightFlag == true)
-		{
-			leftFlag = false;
-		}
-	}
-	else if (leftFlag == false && rightFlag == true)
-	{
-		_player->playAnimation(1);
-		_player->runAction(flipback);
-		_velocity.x = 2;
-		if (leftFlag == true && rightFlag == true)
-		{
-			rightFlag = false;
-		}
-	}
-	if (leftFlag == false && rightFlag == false)
-	{
-		_player->playAnimation(0);
-		_velocity.x = 0;
-	}
 
 	// 上記の通りアニメーションを初期化
 	_player->playAnimation(0);
