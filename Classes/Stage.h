@@ -13,17 +13,20 @@ protected:
 
 	bool leftFlag;
 	bool rightFlag;
+	bool upPressFlag;
+	void playerMove();
+	void jumpMethod();
 
 public:
 
 	enum TileType
 	{
 		BLOCKS = 1 << 0,
-		PLAYER = 1 << 1
+		PLAYER = 2 << 0
 	};
 
 	cocos2d::Vec2 _velocity;
-
+	cocos2d::Vec2 _prevPosition;
 	CC_SYNTHESIZE(bool, _jumpFlag, JumpFlag);
 	CC_SYNTHESIZE_RETAIN(cocos2d::TMXTiledMap*, _tiledMap, TiledMap);
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);

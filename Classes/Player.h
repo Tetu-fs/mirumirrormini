@@ -16,7 +16,8 @@ protected:
 public:
 
 	void jump();
-	void playAnimation(int index);
+	void playAnimation(int index,int UpDown);
+
 
 	CREATE_FUNC(Player);
 

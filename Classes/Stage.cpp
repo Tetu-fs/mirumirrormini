@@ -1,13 +1,14 @@
 #include "Stage.h"
 USING_NS_CC;
 
-const Vec2 JUMP_IMPULSE = Vec2(0, 1200);
+const Vec2 JUMP_IMPULSE = Vec2(0, 500);
 
 Stage::Stage()
 	:_player(nullptr)
 	, _tiledMap(nullptr)
 	, leftFlag(false)
 	, rightFlag(false)
+	, upPressFlag(false)
 	, _jumpFlag(false)
 {
 
@@ -19,69 +20,7 @@ Stage::~Stage()
 	CC_SAFE_RELEASE_NULL(_tiledMap);
 }
 
-void Stage::update(float dt)
-{
 
-	//Vec2型の_velocityという変数を整数値に直す？
-	_velocity.normalize();
-	//自身の位置を、現在地＋ベクトル＊SPEEDの値にする
-	_player->setPosition(_player->getPosition() + _velocity);
-
-	auto playerPosition = _player->getPosition();
-
-	Size winSize = Director::getInstance()->getWinSize();
-	if (playerPosition.x >= winSize.width)
-	{
-		_player->setPositionX(winSize.width);
-		_velocity.x = 0;
-	}
-	
-	else if (playerPosition.x <= 0)
-	{
-		_player->setPositionX(0);
-		_velocity.x = 0;
-	}
-	
-	if (playerPosition.y >= winSize.height)
-	{
-		_player->setPositionY(winSize.height);
-		_velocity.y = 0;
-	}
-	
-	else if (playerPosition.y <= 0)
-	{
-		_player->setPositionY(0);
-		_velocity.y = 0;
-	}
-
-
-	auto flip = FlipX::create(true);
-	auto flipback = FlipX::create(false);
-
-	
-	if (leftFlag == true)
-	{
-		_player->playAnimation(1);
-		_player->runAction(flip);
-		_velocity.x = -2;
-
-
-	}
-
-	if (rightFlag == true)
-	{
-		_player->playAnimation(1);
-		_player->runAction(flipback);
-		_velocity.x = 2;
-	}
-
-	if (leftFlag == false && rightFlag == false)
-	{
-		_player->playAnimation(0);
-		_velocity.x = 0;
-	}
-
-}
 Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 {
 	int checkSlope = layer->getTileGIDAt(coordinate);
@@ -170,6 +109,179 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 
 };
 
+void Stage::jumpMethod()
+{
+	_player->getPhysicsBody()->applyImpulse(JUMP_IMPULSE);
+	setJumpFlag(false);
+}
+
+void Stage::playerMove()
+{
+	//cocos2d::EventListenerKeyboard型のポインタ変数keyboardListenerを宣言し、EventListenerKeyboard::createを代入
+	auto keyboardListener = EventListenerKeyboard::create();
+
+	//キーボードが押された時のstopを書く関数？
+	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
+	{
+		//もし押されたキーが←だったら
+		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
+		{
+			leftFlag = true;
+
+			if (rightFlag == true)
+			{
+				rightFlag = false;
+			}
+		}
+		//そうではなくもし、キーが→だったら
+		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
+		{
+			rightFlag = true;
+			if (leftFlag == true)
+			{
+				leftFlag = false;
+			}
+		}
+		//もし押されたキーが↑だったら
+		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W)
+		{
+			upPressFlag = true;
+
+		}
+		//そうではなくもし押されたキーが↓だったら
+		else if (keyCode == EventKeyboard::KeyCode::KEY_DOWN_ARROW || keyCode == EventKeyboard::KeyCode::KEY_S)
+		{
+			//playAnimation(int index)の変数indexに2を代入
+			//下方向へのアニメーションを再生
+			//_player->playAnimation(2);
+		}
+	};
+	//たぶんキーを離した時のstop　詳細わかんない
+	keyboardListener->onKeyReleased = [this](EventKeyboard::KeyCode keyCode, Event *event) {
+		//もしも離されたキーが←、または→だったら
+		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
+		{
+			leftFlag = false;
+		}
+		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
+		{
+			rightFlag = false;
+		}
+		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W)
+		{
+			upPressFlag = false;
+		}
+	};
+
+	//キーボードのstopを書いた後のおまじないみたいなもの。
+	//(ぎぎさんのコメントより抜粋→)EventListenerってのにキーを押したときとか、話したときみたいなstopを紐付けておいて
+	//最後にEventDispatcherっていうものに、今作ったEventListenerを登録して、「よしなにお願いします」って伝えるstop
+	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyboardListener, this);
+
+
+}
+
+
+
+
+void Stage::update(float dt)
+{
+
+	//Vec2型の_velocityという変数を整数値に直す？
+	_velocity.normalize();
+
+	const int SPEED = 2;
+	//自身の位置を、現在地＋ベクトル＊SPEEDの値にする
+	_player->setPosition(_player->getPosition() + _velocity * SPEED);
+
+	auto playerPosition = _player->getPosition();
+
+	Size winSize = Director::getInstance()->getWinSize();
+	if (playerPosition.x >= winSize.width)
+	{
+		_player->setPositionX(winSize.width);
+		_velocity.x = 0;
+	}
+
+	else if (playerPosition.x <= 0)
+	{
+		_player->setPositionX(0);
+		_velocity.x = 0;
+	}
+
+	if (playerPosition.y >= winSize.height)
+	{
+		_player->setPositionY(winSize.height);
+		_velocity.y = 0;
+	}
+
+	else if (playerPosition.y <= 0)
+	{
+		_player->setPositionY(0);
+		_velocity.y = 0;
+	}
+
+	playerMove();
+
+	auto flip = FlipX::create(true);
+	auto flipback = FlipX::create(false);
+
+
+	if (leftFlag == true)
+	{
+		if (getJumpFlag() == true)
+		{
+			_player->playAnimation(1,0);
+		}
+
+		_player->runAction(flip);
+		_velocity.x = -2;
+	}
+
+	if (rightFlag == true)
+	{
+		if (getJumpFlag() == true)		{
+			_player->playAnimation(1,0);
+		}
+
+		_player->runAction(flipback);
+		_velocity.x = 2;
+	}
+
+	if (leftFlag == false && rightFlag == false)
+	{
+		if (getJumpFlag() == true)
+		{
+			_player->playAnimation(0,0);
+		}
+
+		_velocity.x = 0;
+	}
+
+	if (upPressFlag == true)
+	{
+		if (getJumpFlag() == true)
+		{
+			jumpMethod();
+		}
+	}
+	
+	if (getJumpFlag() == false)
+	{
+
+		if (playerPosition.y > _prevPosition.y)
+		{
+			_player->playAnimation(2, 1);
+		}
+		else if (playerPosition.y < _prevPosition.y)
+		{
+			_player->playAnimation(2, 2);
+		}
+		_prevPosition = playerPosition;
+	}
+
+}
+
 bool Stage::init()
 {
 	if (!Layer::init())
@@ -218,10 +330,11 @@ bool Stage::init()
 	//キャラ配置
 	auto luk = Player::create();
 	luk->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	luk->setPosition(Vec2(144, winSize.height / 2));
+	luk->setPosition(Vec2(64, winSize.height / 2));
 	luk->getTexture()->setAliasTexParameters();
 	this->setPlayer(luk);
 	this->addChild(luk);
+	_prevPosition = _player->getPosition();
 
 	//乗れる部分
 	auto map = TMXTiledMap::create("graphics/ground2.tmx");
@@ -244,83 +357,8 @@ bool Stage::init()
 		}
 	}
 
-
-	//cocos2d::EventListenerKeyboard型のポインタ変数keyboardListenerを宣言し、EventListenerKeyboard::createを代入
-	auto keyboardListener = EventListenerKeyboard::create();
-
-	//キーボードが押された時のstopを書く関数？
-	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
-	{
-			//もし押されたキーが←だったら
-			if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
-			{
-				leftFlag = true;
-
-				if (rightFlag == true)
-				{
-					rightFlag = false;
-				}
-			}
-			//そうではなくもし、キーが→だったら
-			if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
-			{
-				rightFlag = true;
-				if (leftFlag == true)
-				{
-					leftFlag = false;
-				}
-			}
-			//もし押されたキーが↑だったら
-			if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W) 
-			{
-				log("%d", getJumpFlag());
-				if (getJumpFlag() == true)
-				{
-					_player->playAnimation(2);
-					_player->getPhysicsBody()->applyImpulse(JUMP_IMPULSE);
-					setJumpFlag(false);
-				}
-			}
-			//そうではなくもし押されたキーが↓だったら
-			else if (keyCode == EventKeyboard::KeyCode::KEY_DOWN_ARROW || keyCode == EventKeyboard::KeyCode::KEY_S)
-			{
-				//playAnimation(int index)の変数indexに2を代入
-				//下方向へのアニメーションを再生
-				//_player->playAnimation(2);
-			}
-		};
-	//たぶんキーを離した時のstop　詳細わかんない
-	keyboardListener->onKeyReleased = [this](EventKeyboard::KeyCode keyCode, Event *event) {
-		//もしも離されたキーが←、または→だったら
-		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
-		{
-			leftFlag = false;
-		}
-		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
-		{
-			rightFlag = false;
-		}
-		//もしも離されたキーが↑、または↓だったら
-		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_DOWN_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W || keyCode == EventKeyboard::KeyCode::KEY_S)
-		{
-			//playAnimation(int index)の変数indexに0を代入
-			//アニメーションを待機、横移動のものへ戻す
-			//_player->playAnimation(0);
-			//_velocity.y = 0;
-
-		}
-
-	};
-
-	//キーボードのstopを書いた後のおまじないみたいなもの。
-	//(ぎぎさんのコメントより抜粋→)EventListenerってのにキーを押したときとか、話したときみたいなstopを紐付けておいて
-	//最後にEventDispatcherっていうものに、今作ったEventListenerを登録して、「よしなにお願いします」って伝えるstop
-	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyboardListener, this);
-
-
-
 	// 上記の通りアニメーションを初期化
-	_player->playAnimation(0);
+	_player->playAnimation(0,0);
 
 	this->scheduleUpdate();
 

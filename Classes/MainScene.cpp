@@ -29,7 +29,7 @@ Scene* MainScene::createScene()
 
 #endif
 
-	world->setSpeed(3.0);
+	world->setSpeed(6.0);
 
 	auto layer = MainScene::create();
 
@@ -61,7 +61,6 @@ bool MainScene::init()
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-			log("check");
 			_stage->setJumpFlag(true);
 		}
 
@@ -74,7 +73,7 @@ bool MainScene::init()
 
 	//カテゴリ作成
 	const int PhysicsCategoryBlocks = 1 << 0;
-	const int PhysicsCategoryChara = 1 << 1;
+	const int PhysicsCategoryChara = 2 << 0;
 
 	//剛体にカテゴリをセット
 	blocks->setCategoryBitmask(PhysicsCategoryBlocks);
