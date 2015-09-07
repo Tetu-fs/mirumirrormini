@@ -11,13 +11,14 @@ Stage::Stage()
 	, upPressFlag(false)
 	, _jumpFlag(false)
 	, _magic(nullptr)
+	, magicCount(0)
 {
-	Magic* magic = _player->MirrorMethod();
-	this->setMagic(magic);
+
 }
 
 Stage::~Stage()
 {
+	CC_SAFE_RELEASE_NULL(_magic);
 	CC_SAFE_RELEASE_NULL(_player);
 	CC_SAFE_RELEASE_NULL(_tiledMap);
 }
@@ -176,7 +177,10 @@ void Stage::playerMove()
 		{
 			_player->magicLRFlag = true;
 
-			this->addChild(_magic);
+				Magic* sideMagic = _player->MirrorMethod();
+				this->setMagic(sideMagic);
+				this->addChild(_magic);
+
 		}
 	
 	};
@@ -250,8 +254,6 @@ void Stage::update(float dt)
 		_velocity.y = 0;
 	}
 
-	playerMove();
-
 	auto flip = FlipX::create(true);
 	auto flipback = FlipX::create(false);
 
@@ -312,10 +314,8 @@ void Stage::update(float dt)
 
 	if (_player->magicLRFlag == false)
 	{
-		
 		this->removeChild(_magic);
 	}
-
 }
 
 bool Stage::init()
@@ -371,6 +371,8 @@ bool Stage::init()
 	this->setPlayer(luk);
 	this->addChild(luk);
 	_prevPosition = _player->getPosition();
+
+	playerMove();
 
 	//æ‚ê‚é•”•ª
 	auto map = TMXTiledMap::create("graphics/ground2.tmx");

@@ -43,10 +43,8 @@ bool Player::init()
 Magic* Player::MirrorMethod()
 {
 	Size winSize = Director::getInstance()->getWinSize();
-	Magic* magic = Magic::create();
-	magic->getTexture()->setAliasTexParameters();
-
-	auto myPosition = this->getPosition();
+	magic = Magic::create();
+	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 	float whiteScaleX = winSize.width - myPosition.x;
 	magic->setPosition(myPosition.x, 0);
 	magic->setScaleY(240.0);

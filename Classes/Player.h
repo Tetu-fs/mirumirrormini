@@ -15,12 +15,15 @@ protected:
 
 public:
 
+	cocos2d::Vec2 myPosition;
 
 	bool magicLRFlag;
 	bool rightFlag;
 
 	void jump();
 	void playAnimation(int index);
+	Magic* magic;
+
 	Magic* MirrorMethod();
 
 

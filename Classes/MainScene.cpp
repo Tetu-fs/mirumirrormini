@@ -60,17 +60,22 @@ bool MainScene::init()
 
 		Rect floorRect = floorBody->getNode()->getBoundingBox();
 		float floorTopY = floorRect.origin.y + floorRect.size.height;
+		floorPosition = floorBody->getPosition();
 
 		Rect playerRect = _stage->getPlayer()->getBoundingBox();
 		float playerBottomY = playerRect.origin.y;
-
+		float playerBottomMid = playerRect.size.width/2;
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
 			if (floorTopY <= playerBottomY)
 			{
 				_stage->setJumpFlag(true);
+			
+				if (floorTopY >= playerBottomMid)
+				{
+					_stage->getPlayer()->myPosition = floorPosition;
+				}
 			}
-
 		}
 
 		return true;

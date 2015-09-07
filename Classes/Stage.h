@@ -36,11 +36,13 @@ public:
 
 	void update(float dt) override;
 
+	int magicCount;
+
 	Magic* MirrorMethod();
 
 	CC_SYNTHESIZE(bool, _jumpFlag, JumpFlag);
-	CC_SYNTHESIZE(cocos2d::Sprite*, _magic, Magic);
 
+	CC_SYNTHESIZE_RETAIN(Magic*, _magic, Magic);
 	CC_SYNTHESIZE_RETAIN(cocos2d::TMXTiledMap*, _tiledMap, TiledMap);
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	

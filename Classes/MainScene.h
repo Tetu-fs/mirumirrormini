@@ -14,8 +14,11 @@ protected:
 
 	virtual ~MainScene() override;
 public:
-
+	
 	static cocos2d::Scene* createScene();
+	
+	cocos2d::Vec2 floorPosition;
+	
 	CC_SYNTHESIZE_RETAIN(Stage*, _stage, Stage);
 
 	CREATE_FUNC(MainScene);

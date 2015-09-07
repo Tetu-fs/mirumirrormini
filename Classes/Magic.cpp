@@ -11,16 +11,8 @@ bool Magic::init()
 
 
 	auto white = Sprite::create("graphics/white.png");
-	white->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	white->getTexture()->setAliasTexParameters();
 
-
-	/*
-	auto playerPosition = _player->getPosition();
-	auto PtoM = (_mirrorPosition.x - playerPosition.x) / 16;
-	log("%d", PtoM);
-	PtoM *= -1;
-	log("%d", PtoM);
-	*/
 	this->scheduleUpdate();
 	return true;
 }
