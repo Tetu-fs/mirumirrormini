@@ -11,11 +11,15 @@ protected:
 	virtual ~Stage() override;
 	bool init() override;
 
-	bool leftFlag;
-	bool rightFlag;
+	bool leftPressFlag;
+	bool rightPressFlag;
+
 	bool upPressFlag;
+
 	void playerMove();
 	void jumpMethod();
+
+
 
 public:
 
@@ -27,12 +31,23 @@ public:
 
 	cocos2d::Vec2 _velocity;
 	cocos2d::Vec2 _prevPosition;
+
+	cocos2d::Vec2 _mirrorPosition;
+
+	void update(float dt) override;
+
+	Magic* MirrorMethod();
+
 	CC_SYNTHESIZE(bool, _jumpFlag, JumpFlag);
+	CC_SYNTHESIZE(cocos2d::Sprite*, _magic, Magic);
+
 	CC_SYNTHESIZE_RETAIN(cocos2d::TMXTiledMap*, _tiledMap, TiledMap);
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
+	
 	CREATE_FUNC(Stage);
-	void update(float dt) override;
+
 private:
 	cocos2d::Sprite* addPhysicsBody(cocos2d::TMXLayer*layer, cocos2d::Vec2&coodinate);
+
 };
 #endif //__STAGE_H__

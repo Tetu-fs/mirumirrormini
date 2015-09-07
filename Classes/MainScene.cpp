@@ -25,11 +25,11 @@ Scene* MainScene::createScene()
 
 #if COCOS2D_DEBUG > 0
 	
-	//world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
 #endif
 
-	world->setSpeed(6.0);
+	world->setSpeed(4.0);
 
 	auto layer = MainScene::create();
 
@@ -45,7 +45,6 @@ bool MainScene::init()
 		return false;
 	}
 	auto stage = Stage::create();
-
 	this->setStage(stage);
 	this->addChild(stage);
 
@@ -59,9 +58,19 @@ bool MainScene::init()
 		//ƒJƒeƒSƒŠ’Šo
 		auto category = floorBody->getCategoryBitmask();
 
+		Rect floorRect = floorBody->getNode()->getBoundingBox();
+		float floorTopY = floorRect.origin.y + floorRect.size.height;
+
+		Rect playerRect = _stage->getPlayer()->getBoundingBox();
+		float playerBottomY = playerRect.origin.y;
+
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-			_stage->setJumpFlag(true);
+			if (floorTopY <= playerBottomY)
+			{
+				_stage->setJumpFlag(true);
+			}
+
 		}
 
 		return true;

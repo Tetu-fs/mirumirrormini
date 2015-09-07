@@ -20,10 +20,9 @@ bool Player::init()
 		return false;
 	}
 
-	auto playerMaterial = PhysicsMaterial();
-	Point PBox[4]{Point(-5, -12), Point(-5, 1), Point(5, 1), Point(5, -12)};
 
-	playerMaterial.restitution = 0.0;
+	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
+
 	auto body = PhysicsBody::createPolygon(PBox,4);
 	body->setRotationEnable(false);
 	body->setVelocityLimit(30.0);
@@ -35,13 +34,41 @@ bool Player::init()
 	body->setContactTestBitmask(INT_MAX);
 
 	this->setPhysicsBody(body);
+
+	this->scheduleUpdate();
 	return true;
+}
+
+
+Magic* Player::MirrorMethod()
+{
+	Size winSize = Director::getInstance()->getWinSize();
+	Magic* magic = Magic::create();
+	magic->getTexture()->setAliasTexParameters();
+
+	auto myPosition = this->getPosition();
+	float whiteScaleX = winSize.width - myPosition.x;
+	magic->setPosition(myPosition.x, 0);
+	magic->setScaleY(240.0);
+
+	if (rightFlag == true)
+	{
+		magic->setScaleX(whiteScaleX);
+	}
+
+	else if (rightFlag == false)
+	{
+		magic->setScaleX(-whiteScaleX);
+	}
+
+	return magic;
 }
 
 // 0~2のアニメーションを再生するメソッド(0通常、1上、2下)
 //void型のPlayer::playAnimation(int index)関数を作成
-void Player::playAnimation(int index, int UpDown)
+void Player::playAnimation(int index)
 {
+
 	//もしも変数indexCheckと変数indexが等しかったら
 	if (indexCheck == index) {
 		//ここで関数の処理を終了する
@@ -67,8 +94,6 @@ void Player::playAnimation(int index, int UpDown)
 	//SpriteFrame*というテンプレートでframesという配列を宣言
 	Vector<SpriteFrame*> frames;
 
-	if (index >= 1)
-	{
 		//変数iを宣言、0で初期化しiがFRAME_COUNT未満である時、変数iに1を加算し{}内の処理を行いループ
 		//iがFRAME_COUNT未満でなくなった時にループを抜ける
 		for (int i = 0; i < FRAME_COUNT; ++i)
@@ -85,20 +110,31 @@ void Player::playAnimation(int index, int UpDown)
 		}
 		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, index * 24, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
-	}
-	else if (index > 1)
+
+	if (index == 2)
 	{
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * UpDown, 48, frameSize.width, frameSize.height));
+		frames.clear();
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(16, 48, frameSize.width, frameSize.height));
+		frames.pushBack(frame);
+	}
+	else if (index == 3)
+	{
+		frames.clear();
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(32, 48, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
 	}
 
 	//cocos2d::Animation型のポインタ変数animationを宣言
 	//配列framesを代入してるっぽいけどWithなんちゃらがよくわからない
 	auto animation = Animation::createWithSpriteFrames(frames);
-
-	//ポインタ変数animationの表示間隔を0.1秒にする
-	animation->setDelayPerUnit(0.1);
-
+	if (index == 0)
+	{
+		animation->setDelayPerUnit(0.2);
+	}
+	else
+	{
+		animation->setDelayPerUnit(0.1);
+	}
 	//cocos2d::RepeatForever型のポインタ変数animateを宣言　なんか闇っぽい
 	//Animate::create(animation)でanimationで宣言された2コマアニメを生成してるとおもう
 	//RepeatForeverは生成したアニメーションをを無限に繰り返す

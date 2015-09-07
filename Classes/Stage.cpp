@@ -1,17 +1,19 @@
 #include "Stage.h"
 USING_NS_CC;
 
-const Vec2 JUMP_IMPULSE = Vec2(0, 500);
+const Vec2 JUMP_IMPULSE = Vec2(0, 600);
 
 Stage::Stage()
 	:_player(nullptr)
 	, _tiledMap(nullptr)
-	, leftFlag(false)
-	, rightFlag(false)
+	, leftPressFlag(false)
+	, rightPressFlag(false)
 	, upPressFlag(false)
 	, _jumpFlag(false)
+	, _magic(nullptr)
 {
-
+	Magic* magic = _player->MirrorMethod();
+	this->setMagic(magic);
 }
 
 Stage::~Stage()
@@ -25,9 +27,11 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 {
 	int checkSlope = layer->getTileGIDAt(coordinate);
 	int checkflower = layer->getTileGIDAt(coordinate);
+	int checkmirror = layer->getTileGIDAt(coordinate);
 	//スプライトを抽出
 	auto mapSprite = layer->getTileAt(coordinate);
 	Point box[4]{Point(-8, 0), Point(-8, 8), Point(8, 8), Point(8, 0)};
+
 	Point slope1[3]{Point(-8, -8), Point(8, -8), Point(8, 8)};
 	Point slope2[3]{Point(-8, -8), Point(8, -8), Point(-8, 8)};
 
@@ -36,7 +40,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 
 		auto gid = layer->getTileGIDAt(coordinate);
 
-		if (gid == 1 || gid == 5 || gid == 6 || gid == 7 || gid == 8)
+		if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9)
 		{
 
 			//剛体マテリアル設定
@@ -44,13 +48,14 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 			//摩擦
 			material.friction = 99;
 			material.restitution = 0.0;
+
 			//剛体設置
 
 			auto category = 1;
 
-			if (checkSlope != 5 && checkSlope != 8 && checkflower != 3)
+			if (checkmirror != 4 && checkSlope != 6 && checkSlope != 9 && checkflower != 2 && checkflower != 3)
 			{
-				auto physicsBody = PhysicsBody::createPolygon(box, 4, material);
+				auto physicsBody = PhysicsBody::createEdgePolygon(box, 4, material);
 
 				//剛体固定
 				physicsBody->setDynamic(false);
@@ -61,11 +66,22 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 				physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
 				mapSprite->setPhysicsBody(physicsBody);
 			}
+			if (checkmirror == 4)
+			{
+				auto physicsBody4 = PhysicsBody::createEdgePolygon(box, 4, material);
 
+				_mirrorPosition = physicsBody4->getPosition();
+				log("%d", _mirrorPosition.x);
+				//剛体固定
+				physicsBody4->setDynamic(false);
 
+				physicsBody4->setCategoryBitmask(category);
+				physicsBody4->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
+				physicsBody4->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
+				mapSprite->setPhysicsBody(physicsBody4);
 
-
-			else if (checkSlope == 5)
+			}
+			 if (checkSlope == 6)
 			{
 				auto physicsBody2 = PhysicsBody::createEdgePolygon(slope1, 3, material);
 
@@ -81,7 +97,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 			}
 
 
-			else if (checkSlope == 8)
+			else if (checkSlope == 9)
 			{
 				auto physicsBody3 = PhysicsBody::createEdgePolygon(slope2, 3, material);
 
@@ -115,31 +131,38 @@ void Stage::jumpMethod()
 	setJumpFlag(false);
 }
 
+
+
 void Stage::playerMove()
 {
+
 	//cocos2d::EventListenerKeyboard型のポインタ変数keyboardListenerを宣言し、EventListenerKeyboard::createを代入
 	auto keyboardListener = EventListenerKeyboard::create();
 
 	//キーボードが押された時のstopを書く関数？
 	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
 	{
+
 		//もし押されたキーが←だったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
 		{
-			leftFlag = true;
 
-			if (rightFlag == true)
+			leftPressFlag = true;
+			_player->rightFlag = false;
+			if (rightPressFlag == true)
 			{
-				rightFlag = false;
+				rightPressFlag = false;
 			}
 		}
 		//そうではなくもし、キーが→だったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
-			rightFlag = true;
-			if (leftFlag == true)
+			rightPressFlag = true;
+			_player->rightFlag = true;
+
+			if (leftPressFlag == true)
 			{
-				leftFlag = false;
+				leftPressFlag = false;
 			}
 		}
 		//もし押されたキーが↑だったら
@@ -148,28 +171,34 @@ void Stage::playerMove()
 			upPressFlag = true;
 
 		}
-		//そうではなくもし押されたキーが↓だったら
-		else if (keyCode == EventKeyboard::KeyCode::KEY_DOWN_ARROW || keyCode == EventKeyboard::KeyCode::KEY_S)
+		//そうではなくもし押されたキーがスペースだったら
+		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
 		{
-			//playAnimation(int index)の変数indexに2を代入
-			//下方向へのアニメーションを再生
-			//_player->playAnimation(2);
+			_player->magicLRFlag = true;
+
+			this->addChild(_magic);
 		}
+	
 	};
 	//たぶんキーを離した時のstop　詳細わかんない
 	keyboardListener->onKeyReleased = [this](EventKeyboard::KeyCode keyCode, Event *event) {
+
 		//もしも離されたキーが←、または→だったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
 		{
-			leftFlag = false;
+			leftPressFlag = false;
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
-			rightFlag = false;
+			rightPressFlag = false;
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W)
 		{
 			upPressFlag = false;
+		}
+		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
+		{
+			_player->magicLRFlag = false;
 		}
 	};
 
@@ -190,7 +219,7 @@ void Stage::update(float dt)
 	//Vec2型の_velocityという変数を整数値に直す？
 	_velocity.normalize();
 
-	const int SPEED = 2;
+	const float  SPEED = 1.5;
 	//自身の位置を、現在地＋ベクトル＊SPEEDの値にする
 	_player->setPosition(_player->getPosition() + _velocity * SPEED);
 
@@ -227,32 +256,32 @@ void Stage::update(float dt)
 	auto flipback = FlipX::create(false);
 
 
-	if (leftFlag == true)
+	if (leftPressFlag == true)
 	{
 		if (getJumpFlag() == true)
 		{
-			_player->playAnimation(1,0);
+			_player->playAnimation(1);
 		}
 
 		_player->runAction(flip);
 		_velocity.x = -2;
 	}
 
-	if (rightFlag == true)
+	if (rightPressFlag == true)
 	{
 		if (getJumpFlag() == true)		{
-			_player->playAnimation(1,0);
+			_player->playAnimation(1);
 		}
 
 		_player->runAction(flipback);
 		_velocity.x = 2;
 	}
 
-	if (leftFlag == false && rightFlag == false)
+	if (leftPressFlag == false && rightPressFlag == false)
 	{
 		if (getJumpFlag() == true)
 		{
-			_player->playAnimation(0,0);
+			_player->playAnimation(0);
 		}
 
 		_velocity.x = 0;
@@ -271,13 +300,20 @@ void Stage::update(float dt)
 
 		if (playerPosition.y > _prevPosition.y)
 		{
-			_player->playAnimation(2, 1);
+			_player->playAnimation(2);
 		}
 		else if (playerPosition.y < _prevPosition.y)
 		{
-			_player->playAnimation(2, 2);
+			_player->playAnimation(3);
 		}
 		_prevPosition = playerPosition;
+	}
+
+
+	if (_player->magicLRFlag == false)
+	{
+		
+		this->removeChild(_magic);
 	}
 
 }
@@ -344,7 +380,6 @@ bool Stage::init()
 
 	//レイヤー抽出
 	auto ground = map->getLayer("ground");
-
 	//マップの大きさ
 	auto mapSize = map->getMapSize();
 	for (int x = 0; x < mapSize.width; ++x)
@@ -357,8 +392,10 @@ bool Stage::init()
 		}
 	}
 
+
 	// 上記の通りアニメーションを初期化
-	_player->playAnimation(0,0);
+	_player->playAnimation(0);
+
 
 	this->scheduleUpdate();
 
