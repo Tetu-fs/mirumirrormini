@@ -1,0 +1,100 @@
+﻿2015/09/01 21:26:23 にビルドを開始しました。
+     1>ノード 3 上のプロジェクト "F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\editor-support\spine\proj.win32\libSpine.vcxproj" (Build ターゲット)。
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\ /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\audio\include /I"F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\editor-support" /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\extensions /I"F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\editor-support" /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\platform /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\platform\desktop /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\glfw3\include\win32 /I"F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\win32-specific\gles\include\OGLES" /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\freetype2\include\win32\freetype2 /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\freetype2\include\win32\ /ZI /nologo /W3 /WX- /MP /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _LIB /D COCOS2DXWIN32_EXPORTS /D GL_GLEXT_PROTOTYPES /D COCOS2D_DEBUG=1 /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _VARIADIC_MAX=10 /D _USING_V110_SDK71_ /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug.win32\\" /Fd"Debug.win32\vc120.pdb" /Gd /TC /wd4267 /wd4251 /wd4244 /analyze- /errorReport:prompt ..\Animation.c ..\AnimationState.c ..\AnimationStateData.c ..\Atlas.c ..\AtlasAttachmentLoader.c ..\Attachment.c ..\AttachmentLoader.c ..\Bone.c ..\BoneData.c ..\BoundingBoxAttachment.c ..\Event.c ..\EventData.c ..\extension.c ..\IkConstraint.c ..\IkConstraintData.c ..\Json.c ..\MeshAttachment.c ..\RegionAttachment.c ..\Skeleton.c ..\SkeletonBounds.c ..\SkeletonData.c ..\SkeletonJson.c ..\Skin.c ..\SkinnedMeshAttachment.c ..\Slot.c ..\SlotData.c
+         Animation.c
+         AnimationState.c
+         AnimationStateData.c
+         Atlas.c
+         AtlasAttachmentLoader.c
+         Attachment.c
+         AttachmentLoader.c
+         Bone.c
+         BoneData.c
+         BoundingBoxAttachment.c
+         Event.c
+         EventData.c
+         extension.c
+         IkConstraint.c
+         IkConstraintData.c
+         Json.c
+         MeshAttachment.c
+         RegionAttachment.c
+         Skeleton.c
+         SkeletonBounds.c
+         SkeletonData.c
+         SkeletonJson.c
+         Skin.c
+         SkinnedMeshAttachment.c
+         Slot.c
+         SlotData.c
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\ /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\audio\include /I"F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\editor-support" /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\extensions /I"F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\editor-support" /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\platform /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\cocos\platform\desktop /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\glfw3\include\win32 /I"F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\win32-specific\gles\include\OGLES" /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\freetype2\include\win32\freetype2 /IF:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\2d\..\..\external\freetype2\include\win32\ /ZI /nologo /W3 /WX- /MP /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _LIB /D COCOS2DXWIN32_EXPORTS /D GL_GLEXT_PROTOTYPES /D COCOS2D_DEBUG=1 /D _CRT_SECURE_NO_WARNINGS /D _SCL_SECURE_NO_WARNINGS /D _VARIADIC_MAX=10 /D _USING_V110_SDK71_ /D _UNICODE /D UNICODE /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug.win32\\" /Fd"Debug.win32\vc120.pdb" /Gd /TP /wd4267 /wd4251 /wd4244 /analyze- /errorReport:prompt ..\PolygonBatch.cpp ..\SkeletonAnimation.cpp ..\SkeletonRenderer.cpp "..\spine-cocos2dx.cpp"
+         PolygonBatch.cpp
+         SkeletonAnimation.cpp
+         SkeletonRenderer.cpp
+         spine-cocos2dx.cpp
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\base\ccutf8.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\PolygonBatch.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\base\ccutf8.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\spine-cocos2dx.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\base\ccutf8.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\SkeletonRenderer.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\base\ccutf8.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\SkeletonAnimation.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\platform\ccsaxparser.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\PolygonBatch.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\cctmxlayer.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\PolygonBatch.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\platform\ccsaxparser.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\spine-cocos2dx.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\cctmxlayer.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\spine-cocos2dx.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\platform\ccsaxparser.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\SkeletonRenderer.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\cctmxlayer.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\SkeletonRenderer.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\platform\ccsaxparser.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\SkeletonAnimation.cpp)
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(240): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(245) : 'cocos2d::DrawPrimitives::setDrawColor4B' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(253): warning C4996: 'cocos2d::DrawPrimitives::drawPoly': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(142) : 'cocos2d::DrawPrimitives::drawPoly' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(259): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(245) : 'cocos2d::DrawPrimitives::setDrawColor4B' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(264): warning C4996: 'cocos2d::DrawPrimitives::drawLine': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(115) : 'cocos2d::DrawPrimitives::drawLine' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(267): warning C4996: 'cocos2d::DrawPrimitives::setPointSize': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(263) : 'cocos2d::DrawPrimitives::setPointSize' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(268): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(245) : 'cocos2d::DrawPrimitives::setDrawColor4B' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(271): warning C4996: 'cocos2d::DrawPrimitives::drawPoint': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(100) : 'cocos2d::DrawPrimitives::drawPoint' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\editor-support\spine\skeletonrenderer.cpp(272): warning C4996: 'cocos2d::DrawPrimitives::setDrawColor4B': が古い形式として宣言されました。
+                 f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\ccdrawingprimitives.h(245) : 'cocos2d::DrawPrimitives::setDrawColor4B' の宣言を確認してください。
+     1>f:\dates\cocosproject\mirumirrormini\cocos2d\cocos\2d\cctmxlayer.h : warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。 (..\SkeletonAnimation.cpp)
+       Lib:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\Lib.exe /OUT:"F:\Dates\cocosProject\MiruMirrorMini\proj.win32\Debug.win32\libSpine.lib" /NOLOGO Debug.win32\Animation.obj
+         Debug.win32\AnimationState.obj
+         Debug.win32\AnimationStateData.obj
+         Debug.win32\Atlas.obj
+         Debug.win32\AtlasAttachmentLoader.obj
+         Debug.win32\Attachment.obj
+         Debug.win32\AttachmentLoader.obj
+         Debug.win32\Bone.obj
+         Debug.win32\BoneData.obj
+         Debug.win32\BoundingBoxAttachment.obj
+         Debug.win32\Event.obj
+         Debug.win32\EventData.obj
+         Debug.win32\extension.obj
+         Debug.win32\IkConstraint.obj
+         Debug.win32\IkConstraintData.obj
+         Debug.win32\Json.obj
+         Debug.win32\MeshAttachment.obj
+         Debug.win32\PolygonBatch.obj
+         Debug.win32\RegionAttachment.obj
+         Debug.win32\Skeleton.obj
+         Debug.win32\SkeletonAnimation.obj
+         Debug.win32\SkeletonBounds.obj
+         Debug.win32\SkeletonData.obj
+         Debug.win32\SkeletonJson.obj
+         Debug.win32\SkeletonRenderer.obj
+         Debug.win32\Skin.obj
+         Debug.win32\SkinnedMeshAttachment.obj
+         Debug.win32\Slot.obj
+         Debug.win32\SlotData.obj
+         "Debug.win32\spine-cocos2dx.obj"
+         libSpine.vcxproj -> F:\Dates\cocosProject\MiruMirrorMini\proj.win32\Debug.win32\libSpine.lib
+     1>プロジェクト "F:\Dates\cocosProject\MiruMirrorMini\cocos2d\cocos\editor-support\spine\proj.win32\libSpine.vcxproj" (Build ターゲット) のビルドが完了しました。
+
+ビルドに成功しました。
+
+経過時間 00:00:15.00
