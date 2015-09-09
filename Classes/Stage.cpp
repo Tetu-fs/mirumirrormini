@@ -38,7 +38,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 
 	if (mapSprite)
 	{
-
+		mapSprite->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 		auto gid = layer->getTileGIDAt(coordinate);
 
 		if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9)
@@ -61,7 +61,6 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 				//剛体固定
 				physicsBody->setDynamic(false);
 
-
 				physicsBody->setCategoryBitmask(category);
 				physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
 				physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
@@ -72,7 +71,6 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 				auto physicsBody4 = PhysicsBody::createEdgePolygon(box, 4, material);
 
 				_mirrorPosition = physicsBody4->getPosition();
-				log("%d", _mirrorPosition.x);
 				//剛体固定
 				physicsBody4->setDynamic(false);
 
@@ -116,7 +114,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 
 
 		}
-		mapSprite->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+
 
 		return mapSprite;
 
@@ -175,12 +173,14 @@ void Stage::playerMove()
 		//そうではなくもし押されたキーがスペースだったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
 		{
-			_player->magicLRFlag = true;
+			if (getJumpFlag() == true)
+			{
+				_player->magicLRFlag = true;
 
 				Magic* sideMagic = _player->MirrorMethod();
 				this->setMagic(sideMagic);
 				this->addChild(_magic);
-
+			}
 		}
 	
 	};
@@ -365,7 +365,7 @@ bool Stage::init()
 
 	//キャラ配置
 	auto luk = Player::create();
-	luk->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE_BOTTOM);
 	luk->setPosition(Vec2(64, winSize.height / 2));
 	luk->getTexture()->setAliasTexParameters();
 	this->setPlayer(luk);
@@ -376,6 +376,7 @@ bool Stage::init()
 
 	//乗れる部分
 	auto map = TMXTiledMap::create("graphics/ground2.tmx");
+	map->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 	map->setPositionX(8);
 	this->addChild(map);
 	this->setTiledMap(map);

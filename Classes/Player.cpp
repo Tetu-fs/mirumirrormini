@@ -5,6 +5,7 @@ USING_NS_CC;
 const int FRAME_COUNT = 3;
 Player::Player()
 	:indexCheck(-1)
+	, myPosition(0,0)
 {
 }
 
@@ -21,7 +22,7 @@ bool Player::init()
 	}
 
 
-	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
+	Point PBox[4]{Point(-1, -12), Point(-1, 0), Point(1, 0), Point(1, -12)};
 
 	auto body = PhysicsBody::createPolygon(PBox,4);
 	body->setRotationEnable(false);
@@ -45,18 +46,23 @@ Magic* Player::MirrorMethod()
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteScaleX = winSize.width - myPosition.x;
-	magic->setPosition(myPosition.x, 0);
+	float whiteRightScale = winSize.width - myPosition.x;
+	float whiteLeftScale = 0 - myPosition.x;
+
 	magic->setScaleY(240.0);
 
 	if (rightFlag == true)
 	{
-		magic->setScaleX(whiteScaleX);
+		log("whiteRightScale = %f", whiteRightScale/16);
+		magic->setPosition(myPosition.x, 0);
+		magic->setScaleX(whiteRightScale);
 	}
 
 	else if (rightFlag == false)
 	{
-		magic->setScaleX(-whiteScaleX);
+		log("whiteLeftScale = %f", whiteLeftScale/16);
+		magic->setPosition(myPosition.x, 0);
+		magic->setScaleX(whiteLeftScale);
 	}
 
 	return magic;
