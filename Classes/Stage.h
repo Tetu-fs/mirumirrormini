@@ -33,7 +33,6 @@ public:
 	cocos2d::Vec2 _prevPosition;
 
 	cocos2d::Vec2 _mirrorPosition;
-
 	void update(float dt) override;
 
 	int magicCount;

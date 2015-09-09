@@ -22,7 +22,7 @@ bool Player::init()
 	}
 
 
-	Point PBox[4]{Point(-1, -12), Point(-1, 0), Point(1, 0), Point(1, -12)};
+	Point PBox[4]{Point(-3, -12), Point(-3, 0), Point(3, 0), Point(3, -12)};
 
 	auto body = PhysicsBody::createPolygon(PBox,4);
 	body->setRotationEnable(false);
@@ -36,6 +36,7 @@ bool Player::init()
 
 	this->setPhysicsBody(body);
 
+	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE_BOTTOM);
 	this->scheduleUpdate();
 	return true;
 }

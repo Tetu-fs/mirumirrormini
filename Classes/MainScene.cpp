@@ -25,7 +25,7 @@ Scene* MainScene::createScene()
 
 #if COCOS2D_DEBUG > 0
 	
-	world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	//world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
 #endif
 
@@ -47,45 +47,6 @@ bool MainScene::init()
 	auto stage = Stage::create();
 	this->setStage(stage);
 	this->addChild(stage);
-
-	//剛体の接触チェック
-	auto contactListener = EventListenerPhysicsContact::create();
-	contactListener->onContactBegin = [this](PhysicsContact&contact){
-
-		//プレイヤーではない方を抽出
-		auto floor = contact.getShapeA()->getBody() == _stage->getPlayer()->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
-		auto floorBody = floor->getBody();
-		//カテゴリ抽出
-		auto category = floorBody->getCategoryBitmask();
-
-		Rect floorRect = floorBody->getNode()->getBoundingBox();
-		float floorTopY = floorRect.origin.y + floorRect.size.height;
-		floorPosition = floorBody->getNode()->getPosition();
-
-		Rect playerRect = _stage->getPlayer()->getBoundingBox();
-		float playerBottomY = playerRect.origin.y;
-		float playerX = _stage->getPlayer()->getPosition().x;
-
-		float minX = floorRect.origin.x;
-		float maxX = floorRect.origin.x + floorRect.size.width;
-		bool isContains = minX <= playerX && playerX <= maxX;
-		if (category & static_cast<int>(Stage::TileType::BLOCKS))
-		{
-			if (floorTopY <= playerBottomY)
-			{
-				_stage->setJumpFlag(true);
-			}
-
-			if (isContains == true)
-			{
-				_stage->getPlayer()->myPosition = floorPosition;
-			}
-		}
-
-
-		return true;
-	};
-	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
 
 	//剛体作成
 	auto blocks = PhysicsBody::create();

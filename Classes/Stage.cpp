@@ -31,6 +31,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 	int checkmirror = layer->getTileGIDAt(coordinate);
 	//スプライトを抽出
 	auto mapSprite = layer->getTileAt(coordinate);
+
 	Point box[4]{Point(-8, 0), Point(-8, 8), Point(8, 8), Point(8, 0)};
 
 	Point slope1[3]{Point(-8, -8), Point(8, -8), Point(8, 8)};
@@ -39,11 +40,12 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 	if (mapSprite)
 	{
 		mapSprite->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+		mapSprite->setPosition(mapSprite->getPosition().x + 8, mapSprite->getPosition().y);
+		
 		auto gid = layer->getTileGIDAt(coordinate);
 
 		if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9)
 		{
-
 			//剛体マテリアル設定
 			auto material = PhysicsMaterial();
 			//摩擦
@@ -53,10 +55,13 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 			//剛体設置
 
 			auto category = 1;
+			auto physicsBody = PhysicsBody::createEdgePolygon(box, 4, material);
+			auto physicsBody2 = PhysicsBody::createEdgePolygon(slope1, 3, material);
+			auto physicsBody3 = PhysicsBody::createEdgePolygon(slope2, 3, material);
+			auto physicsBody4 = PhysicsBody::createEdgePolygon(box, 4, material);
 
 			if (checkmirror != 4 && checkSlope != 6 && checkSlope != 9 && checkflower != 2 && checkflower != 3)
 			{
-				auto physicsBody = PhysicsBody::createEdgePolygon(box, 4, material);
 
 				//剛体固定
 				physicsBody->setDynamic(false);
@@ -66,23 +71,9 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 				physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
 				mapSprite->setPhysicsBody(physicsBody);
 			}
-			if (checkmirror == 4)
-			{
-				auto physicsBody4 = PhysicsBody::createEdgePolygon(box, 4, material);
 
-				_mirrorPosition = physicsBody4->getPosition();
-				//剛体固定
-				physicsBody4->setDynamic(false);
-
-				physicsBody4->setCategoryBitmask(category);
-				physicsBody4->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
-				physicsBody4->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
-				mapSprite->setPhysicsBody(physicsBody4);
-
-			}
 			 if (checkSlope == 6)
 			{
-				auto physicsBody2 = PhysicsBody::createEdgePolygon(slope1, 3, material);
 
 				//剛体固定
 				physicsBody2->setDynamic(false);
@@ -98,7 +89,6 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 
 			else if (checkSlope == 9)
 			{
-				auto physicsBody3 = PhysicsBody::createEdgePolygon(slope2, 3, material);
 
 				//剛体固定
 				physicsBody3->setDynamic(false);
@@ -111,7 +101,20 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 
 			}
 
+			 if (checkmirror == 4)
+			 {
 
+
+				 _mirrorPosition = physicsBody4->getPosition();
+				 //剛体固定
+				 physicsBody4->setDynamic(false);
+
+				 physicsBody4->setCategoryBitmask(category);
+				 physicsBody4->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
+				 physicsBody4->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
+				 mapSprite->setPhysicsBody(physicsBody4);
+
+			 }
 
 		}
 
@@ -119,7 +122,6 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 		return mapSprite;
 
 	}
-
 	return nullptr;
 
 };
@@ -324,6 +326,55 @@ bool Stage::init()
 	{
 		return false;
 	}
+	//剛体の接触チェック
+	auto contactListener = EventListenerPhysicsContact::create();
+	contactListener->onContactBegin = [this](PhysicsContact&contact){
+
+		//プレイヤーではない方を抽出
+		auto floor = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
+		auto floorBody = floor->getBody();
+		//カテゴリ抽出
+		auto category = floorBody->getCategoryBitmask();
+
+		Rect floorRect = floorBody->getNode()->getBoundingBox();
+		float floorTopY = floorRect.origin.y + floorRect.size.height;
+		Vec2 floorPosition = floorBody->getNode()->getPosition();
+
+		Rect playerRect = _player->getBoundingBox();
+		float playerBottomY = playerRect.origin.y;
+		float playerX = _player->getPosition().x;
+
+		float minX = floorRect.origin.x;
+		float maxX = floorRect.origin.x + floorRect.size.width;
+		bool isContains = minX <= playerX && playerX <= maxX;
+
+		auto checkDot = Sprite::create("graphics/white.png");
+		checkDot->setPosition(floorRect.getMidX(), floorTopY);
+		checkDot->setScale(2.0f);
+
+		if (category & static_cast<int>(Stage::TileType::BLOCKS))
+		{
+
+			this->addChild(checkDot);
+			if (floorTopY <= playerBottomY)
+			{
+				setJumpFlag(true);
+			}
+
+			if (isContains == true)
+			{
+
+				_player->myPosition = floorPosition;
+			}
+		}
+		else{
+			removeChild(checkDot);
+		}
+
+
+		return true;
+	};
+	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
 
 	//画面サイズ取得
 	Size winSize = Director::getInstance()->getWinSize();
@@ -377,9 +428,10 @@ bool Stage::init()
 	//乗れる部分
 	auto map = TMXTiledMap::create("graphics/ground2.tmx");
 	map->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	map->setPositionX(8);
+	//map->setPosition(Vec2(8, 0));
 	this->addChild(map);
 	this->setTiledMap(map);
+	
 
 	//レイヤー抽出
 	auto ground = map->getLayer("ground");
@@ -398,7 +450,6 @@ bool Stage::init()
 
 	// 上記の通りアニメーションを初期化
 	_player->playAnimation(0);
-
 
 	this->scheduleUpdate();
 
