@@ -15,7 +15,7 @@ protected:
 
 public:
 
-	cocos2d::Vec2 myPosition;
+	cocos2d::Vec2 magicPosition;
 
 	bool magicLRFlag;
 	bool rightFlag;

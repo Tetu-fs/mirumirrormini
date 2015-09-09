@@ -12,7 +12,7 @@ bool Magic::init()
 
 	auto white = Sprite::create("graphics/white.png");
 	white->getTexture()->setAliasTexParameters();
-
+	this->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 	this->scheduleUpdate();
 	return true;
 }

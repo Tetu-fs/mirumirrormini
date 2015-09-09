@@ -181,6 +181,7 @@ void Stage::playerMove()
 
 				Magic* sideMagic = _player->MirrorMethod();
 				this->setMagic(sideMagic);
+				_magic->setPosition(_player->magicPosition);
 				this->addChild(_magic);
 			}
 		}
@@ -338,24 +339,26 @@ bool Stage::init()
 
 		Rect floorRect = floorBody->getNode()->getBoundingBox();
 		float floorTopY = floorRect.origin.y + floorRect.size.height;
-		Vec2 floorPosition = floorBody->getNode()->getPosition();
+
+		float minX = floorRect.origin.x;
+		float midX = floorRect.origin.x + floorRect.size.width / 2;
+		float maxX = floorRect.origin.x + floorRect.size.width;
 
 		Rect playerRect = _player->getBoundingBox();
 		float playerBottomY = playerRect.origin.y;
 		float playerX = _player->getPosition().x;
 
-		float minX = floorRect.origin.x;
-		float maxX = floorRect.origin.x + floorRect.size.width;
+
 		bool isContains = minX <= playerX && playerX <= maxX;
 
 		auto checkDot = Sprite::create("graphics/white.png");
-		checkDot->setPosition(floorRect.getMidX(), floorTopY);
+		checkDot->setPosition(midX, floorRect.getMaxY());
 		checkDot->setScale(2.0f);
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-
 			this->addChild(checkDot);
+		
 			if (floorTopY <= playerBottomY)
 			{
 				setJumpFlag(true);
@@ -363,15 +366,9 @@ bool Stage::init()
 
 			if (isContains == true)
 			{
-
-				_player->myPosition = floorPosition;
+				_player->magicPosition = Vec2(midX, 0);
 			}
 		}
-		else{
-			removeChild(checkDot);
-		}
-
-
 		return true;
 	};
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);

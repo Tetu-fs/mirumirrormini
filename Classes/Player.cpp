@@ -5,7 +5,7 @@ USING_NS_CC;
 const int FRAME_COUNT = 3;
 Player::Player()
 	:indexCheck(-1)
-	, myPosition(0,0)
+	, magicPosition(0,0)
 {
 }
 
@@ -47,22 +47,20 @@ Magic* Player::MirrorMethod()
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteRightScale = winSize.width - myPosition.x;
-	float whiteLeftScale = 0 - myPosition.x;
+	float whiteRightScale = winSize.width - magicPosition.x;
+	float whiteLeftScale = 0 - magicPosition.x;
 
 	magic->setScaleY(240.0);
 
 	if (rightFlag == true)
 	{
 		log("whiteRightScale = %f", whiteRightScale/16);
-		magic->setPosition(myPosition.x, 0);
 		magic->setScaleX(whiteRightScale);
 	}
 
 	else if (rightFlag == false)
 	{
 		log("whiteLeftScale = %f", whiteLeftScale/16);
-		magic->setPosition(myPosition.x, 0);
 		magic->setScaleX(whiteLeftScale);
 	}
 
