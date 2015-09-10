@@ -22,7 +22,7 @@ bool Player::init()
 	}
 
 
-	Point PBox[4]{Point(-3, -12), Point(-3, 0), Point(3, 0), Point(3, -12)};
+	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
 
 	auto body = PhysicsBody::createPolygon(PBox,4);
 	body->setRotationEnable(false);
@@ -36,7 +36,7 @@ bool Player::init()
 
 	this->setPhysicsBody(body);
 
-	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE_BOTTOM);
+	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	this->scheduleUpdate();
 	return true;
 }
@@ -47,20 +47,18 @@ Magic* Player::MirrorMethod()
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteRightScale = winSize.width - magicPosition.x;
-	float whiteLeftScale = 0 - magicPosition.x;
+	float whiteRightScale = 384 * 2;
+	float whiteLeftScale = -384 * 2;
 
 	magic->setScaleY(240.0);
 
 	if (rightFlag == true)
 	{
-		log("whiteRightScale = %f", whiteRightScale/16);
 		magic->setScaleX(whiteRightScale);
 	}
 
 	else if (rightFlag == false)
 	{
-		log("whiteLeftScale = %f", whiteLeftScale/16);
 		magic->setScaleX(whiteLeftScale);
 	}
 

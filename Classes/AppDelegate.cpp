@@ -34,11 +34,11 @@ bool AppDelegate::applicationDidFinishLaunching() {
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
     if(!glview) {
-		glview = GLViewImpl::createWithRect("MyGame", Rect(0, 0, 384, 216), 2.0);
+		glview = GLViewImpl::createWithRect("MyGame", Rect(0, 0, 384, 224), 2.0);
         director->setOpenGLView(glview);
     }
  //すべての端末で画面サイズを320*240として扱う
-    glview->setDesignResolutionSize(384, 216, ResolutionPolicy::EXACT_FIT);
+    glview->setDesignResolutionSize(384, 224, ResolutionPolicy::EXACT_FIT);
     
     // turn on display FPS
     director->setDisplayStats(false);

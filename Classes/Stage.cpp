@@ -1,17 +1,29 @@
-#include "Stage.h"
+ï»¿#include "Stage.h"
 USING_NS_CC;
 
 const Vec2 JUMP_IMPULSE = Vec2(0, 600);
+const int MAPCHIP_SIZE = 16;
+const int BLOCK_SIZE = 16;
 
 Stage::Stage()
 	:_player(nullptr)
 	, _tiledMap(nullptr)
+	, _blocks(nullptr)
 	, leftPressFlag(false)
 	, rightPressFlag(false)
 	, upPressFlag(false)
 	, _jumpFlag(false)
 	, _magic(nullptr)
-	, magicCount(0)
+	, testX(0)
+	, testY(0)
+	
+	, blockX(0)
+	, blockY(0)
+	, mapX(0)
+	, mapY(0)
+	, tileID(0)
+	, rectX(0)
+	, rectY(0)
 {
 
 }
@@ -21,7 +33,10 @@ Stage::~Stage()
 	CC_SAFE_RELEASE_NULL(_magic);
 	CC_SAFE_RELEASE_NULL(_player);
 	CC_SAFE_RELEASE_NULL(_tiledMap);
+	CC_SAFE_RELEASE_NULL(_blocks);
+
 }
+
 
 
 Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
@@ -29,7 +44,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 	int checkSlope = layer->getTileGIDAt(coordinate);
 	int checkflower = layer->getTileGIDAt(coordinate);
 	int checkmirror = layer->getTileGIDAt(coordinate);
-	//ƒXƒvƒ‰ƒCƒg‚ð’Šo
+	//ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‚’æŠ½å‡º
 	auto mapSprite = layer->getTileAt(coordinate);
 
 	Point box[4]{Point(-8, 0), Point(-8, 8), Point(8, 8), Point(8, 0)};
@@ -40,19 +55,19 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 	if (mapSprite)
 	{
 		mapSprite->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-		mapSprite->setPosition(mapSprite->getPosition().x + 8, mapSprite->getPosition().y);
+		//mapSprite->setPosition(mapSprite->getPosition().x + 8, mapSprite->getPosition().y);
 		
 		auto gid = layer->getTileGIDAt(coordinate);
 
 		if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9)
 		{
-			//„‘Ìƒ}ƒeƒŠƒAƒ‹Ý’è
+			//å‰›ä½“ãƒžãƒ†ãƒªã‚¢ãƒ«è¨­å®š
 			auto material = PhysicsMaterial();
-			//–€ŽC
+			//æ‘©æ“¦
 			material.friction = 99;
 			material.restitution = 0.0;
 
-			//„‘ÌÝ’u
+			//å‰›ä½“è¨­ç½®
 
 			auto category = 1;
 			auto physicsBody = PhysicsBody::createEdgePolygon(box, 4, material);
@@ -63,7 +78,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 			if (checkmirror != 4 && checkSlope != 6 && checkSlope != 9 && checkflower != 2 && checkflower != 3)
 			{
 
-				//„‘ÌŒÅ’è
+				//å‰›ä½“å›ºå®š
 				physicsBody->setDynamic(false);
 
 				physicsBody->setCategoryBitmask(category);
@@ -75,7 +90,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 			 if (checkSlope == 6)
 			{
 
-				//„‘ÌŒÅ’è
+				//å‰›ä½“å›ºå®š
 				physicsBody2->setDynamic(false);
 
 
@@ -90,7 +105,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 			else if (checkSlope == 9)
 			{
 
-				//„‘ÌŒÅ’è
+				//å‰›ä½“å›ºå®š
 				physicsBody3->setDynamic(false);
 
 
@@ -106,7 +121,7 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 
 
 				 _mirrorPosition = physicsBody4->getPosition();
-				 //„‘ÌŒÅ’è
+				 //å‰›ä½“å›ºå®š
 				 physicsBody4->setDynamic(false);
 
 				 physicsBody4->setCategoryBitmask(category);
@@ -117,7 +132,6 @@ Sprite* Stage::addPhysicsBody(TMXLayer *layer, Vec2 &coordinate)
 			 }
 
 		}
-
 
 		return mapSprite;
 
@@ -137,42 +151,49 @@ void Stage::jumpMethod()
 void Stage::playerMove()
 {
 
-	//cocos2d::EventListenerKeyboardŒ^‚Ìƒ|ƒCƒ“ƒ^•Ï”keyboardListener‚ðéŒ¾‚µAEventListenerKeyboard::create‚ð‘ã“ü
+	//cocos2d::EventListenerKeyboardåž‹ã®ãƒã‚¤ãƒ³ã‚¿å¤‰æ•°keyboardListenerã‚’å®£è¨€ã—ã€EventListenerKeyboard::createã‚’ä»£å…¥
 	auto keyboardListener = EventListenerKeyboard::create();
 
-	//ƒL[ƒ{[ƒh‚ª‰Ÿ‚³‚ê‚½Žž‚Ìstop‚ð‘‚­ŠÖ”H
+	//ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ãŒæŠ¼ã•ã‚ŒãŸæ™‚ã®stopã‚’æ›¸ãé–¢æ•°ï¼Ÿ
 	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
 	{
 
-		//‚à‚µ‰Ÿ‚³‚ê‚½ƒL[‚ª©‚¾‚Á‚½‚ç
+		//ã‚‚ã—æŠ¼ã•ã‚ŒãŸã‚­ãƒ¼ãŒâ†ã ã£ãŸã‚‰
 		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
 		{
-
 			leftPressFlag = true;
+	
+
 			_player->rightFlag = false;
 			if (rightPressFlag == true)
 			{
 				rightPressFlag = false;
 			}
 		}
-		//‚»‚¤‚Å‚Í‚È‚­‚à‚µAƒL[‚ª¨‚¾‚Á‚½‚ç
+		//ãã†ã§ã¯ãªãã‚‚ã—ã€ã‚­ãƒ¼ãŒâ†’ã ã£ãŸã‚‰
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
 			rightPressFlag = true;
 			_player->rightFlag = true;
-
+	
 			if (leftPressFlag == true)
 			{
 				leftPressFlag = false;
 			}
 		}
-		//‚à‚µ‰Ÿ‚³‚ê‚½ƒL[‚ªª‚¾‚Á‚½‚ç
+		//ã‚‚ã—æŠ¼ã•ã‚ŒãŸã‚­ãƒ¼ãŒâ†‘ã ã£ãŸã‚‰
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW || keyCode == EventKeyboard::KeyCode::KEY_W)
 		{
 			upPressFlag = true;
 
 		}
-		//‚»‚¤‚Å‚Í‚È‚­‚à‚µ‰Ÿ‚³‚ê‚½ƒL[‚ªƒXƒy[ƒX‚¾‚Á‚½‚ç
+		//ã‚‚ã—æŠ¼ã•ã‚ŒãŸã‚­ãƒ¼ãŒâ†‘ã ã£ãŸã‚‰
+		if (keyCode == EventKeyboard::KeyCode::KEY_DOWN_ARROW || keyCode == EventKeyboard::KeyCode::KEY_S)
+		{
+
+
+		}
+		//ãã†ã§ã¯ãªãã‚‚ã—æŠ¼ã•ã‚ŒãŸã‚­ãƒ¼ãŒã‚¹ãƒšãƒ¼ã‚¹ã ã£ãŸã‚‰
 		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
 		{
 			if (getJumpFlag() == true)
@@ -187,13 +208,14 @@ void Stage::playerMove()
 		}
 	
 	};
-	//‚½‚Ô‚ñƒL[‚ð—£‚µ‚½Žž‚Ìstop@Ú×‚í‚©‚ñ‚È‚¢
+	//ãŸã¶ã‚“ã‚­ãƒ¼ã‚’é›¢ã—ãŸæ™‚ã®stopã€€è©³ç´°ã‚ã‹ã‚“ãªã„
 	keyboardListener->onKeyReleased = [this](EventKeyboard::KeyCode keyCode, Event *event) {
 
-		//‚à‚µ‚à—£‚³‚ê‚½ƒL[‚ª©A‚Ü‚½‚Í¨‚¾‚Á‚½‚ç
+		//ã‚‚ã—ã‚‚é›¢ã•ã‚ŒãŸã‚­ãƒ¼ãŒâ†ã€ã¾ãŸã¯â†’ã ã£ãŸã‚‰
 		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_A)
 		{
 			leftPressFlag = false;
+
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
@@ -209,25 +231,20 @@ void Stage::playerMove()
 		}
 	};
 
-	//ƒL[ƒ{[ƒh‚Ìstop‚ð‘‚¢‚½Œã‚Ì‚¨‚Ü‚¶‚È‚¢‚Ý‚½‚¢‚È‚à‚ÌB
-	//(‚¬‚¬‚³‚ñ‚ÌƒRƒƒ“ƒg‚æ‚è”²ˆ¨)EventListener‚Á‚Ä‚Ì‚ÉƒL[‚ð‰Ÿ‚µ‚½‚Æ‚«‚Æ‚©A˜b‚µ‚½‚Æ‚«‚Ý‚½‚¢‚Èstop‚ð•R•t‚¯‚Ä‚¨‚¢‚Ä
-	//ÅŒã‚ÉEventDispatcher‚Á‚Ä‚¢‚¤‚à‚Ì‚ÉA¡ì‚Á‚½EventListener‚ð“o˜^‚µ‚ÄAu‚æ‚µ‚È‚É‚¨Šè‚¢‚µ‚Ü‚·v‚Á‚Ä“`‚¦‚éstop
+	//ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰ã®stopã‚’æ›¸ã„ãŸå¾Œã®ãŠã¾ã˜ãªã„ã¿ãŸã„ãªã‚‚ã®ã€‚
+	//(ãŽãŽã•ã‚“ã®ã‚³ãƒ¡ãƒ³ãƒˆã‚ˆã‚ŠæŠœç²‹â†’)EventListenerã£ã¦ã®ã«ã‚­ãƒ¼ã‚’æŠ¼ã—ãŸã¨ãã¨ã‹ã€è©±ã—ãŸã¨ãã¿ãŸã„ãªstopã‚’ç´ä»˜ã‘ã¦ãŠã„ã¦
+	//æœ€å¾Œã«EventDispatcherã£ã¦ã„ã†ã‚‚ã®ã«ã€ä»Šä½œã£ãŸEventListenerã‚’ç™»éŒ²ã—ã¦ã€ã€Œã‚ˆã—ãªã«ãŠé¡˜ã„ã—ã¾ã™ã€ã£ã¦ä¼ãˆã‚‹stop
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyboardListener, this);
-
-
 }
-
-
-
 
 void Stage::update(float dt)
 {
 
-	//Vec2Œ^‚Ì_velocity‚Æ‚¢‚¤•Ï”‚ð®”’l‚É’¼‚·H
+	//Vec2åž‹ã®_velocityã¨ã„ã†å¤‰æ•°ã‚’æ•´æ•°å€¤ã«ç›´ã™ï¼Ÿ
 	_velocity.normalize();
 
 	const float  SPEED = 1.5;
-	//Ž©g‚ÌˆÊ’u‚ðAŒ»Ý’n{ƒxƒNƒgƒ‹–SPEED‚Ì’l‚É‚·‚é
+	//è‡ªèº«ã®ä½ç½®ã‚’ã€ç¾åœ¨åœ°ï¼‹ãƒ™ã‚¯ãƒˆãƒ«ï¼ŠSPEEDã®å€¤ã«ã™ã‚‹
 	_player->setPosition(_player->getPosition() + _velocity * SPEED);
 
 	auto playerPosition = _player->getPosition();
@@ -319,6 +336,40 @@ void Stage::update(float dt)
 	{
 		this->removeChild(_magic);
 	}
+
+	testMethod();
+	testVec = Vec2(testX * 16, testY * 16);
+	testBlock->setPosition(testVec);
+
+}
+void Stage::testMethod()
+{
+	testX = ((int)_player->getPosition().x) / 16;
+	testY = ((int)_player->getPosition().y) / 16;
+
+}
+
+Blocks* Stage::BlockGen(int GID)
+{
+	Blocks* blockGen = Blocks::create();
+	//auto blocks = Sprite::create("graphics/mapchip_00.png");
+
+
+	auto tileSize = Size(5, 4);
+
+	const int X_MAX = tileSize.width;
+
+	rectX = ((GID - 1) % X_MAX + 1) - 1;	
+	rectY = (int)((GID - 1) / X_MAX);
+	log("rectX = %d", rectX);
+	log("rectY = %d", rectY);
+	blockGen->setTextureRect(Rect(rectX * BLOCK_SIZE, rectY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE));
+
+
+
+	//SpriteFrame::create("graphics/mapchip_00.png", Rect(0, 0, BLOCK_SIZE, BLOCK_SIZE));
+
+	return blockGen;
 }
 
 bool Stage::init()
@@ -327,21 +378,21 @@ bool Stage::init()
 	{
 		return false;
 	}
-	//„‘Ì‚ÌÚGƒ`ƒFƒbƒN
+	//å‰›ä½“ã®æŽ¥è§¦ãƒã‚§ãƒƒã‚¯
 	auto contactListener = EventListenerPhysicsContact::create();
 	contactListener->onContactBegin = [this](PhysicsContact&contact){
 
-		//ƒvƒŒƒCƒ„[‚Å‚Í‚È‚¢•û‚ð’Šo
+		//ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã§ã¯ãªã„æ–¹ã‚’æŠ½å‡º
 		auto floor = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
 		auto floorBody = floor->getBody();
-		//ƒJƒeƒSƒŠ’Šo
+		//ã‚«ãƒ†ã‚´ãƒªæŠ½å‡º
 		auto category = floorBody->getCategoryBitmask();
 
 		Rect floorRect = floorBody->getNode()->getBoundingBox();
 		float floorTopY = floorRect.origin.y + floorRect.size.height;
 
 		float minX = floorRect.origin.x;
-		float midX = floorRect.origin.x + floorRect.size.width / 2;
+		float midX = (floorRect.origin.x + floorRect.size.width / 2);
 		float maxX = floorRect.origin.x + floorRect.size.width;
 
 		Rect playerRect = _player->getBoundingBox();
@@ -352,13 +403,13 @@ bool Stage::init()
 		bool isContains = minX <= playerX && playerX <= maxX;
 
 		auto checkDot = Sprite::create("graphics/white.png");
-		checkDot->setPosition(midX, floorRect.getMaxY());
+		checkDot->setPosition(minX, floorRect.getMaxY());
 		checkDot->setScale(2.0f);
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
 			this->addChild(checkDot);
-		
+
 			if (floorTopY <= playerBottomY)
 			{
 				setJumpFlag(true);
@@ -366,17 +417,25 @@ bool Stage::init()
 
 			if (isContains == true)
 			{
-				_player->magicPosition = Vec2(midX, 0);
+				if (_player->rightFlag == true)
+				{
+					_player->magicPosition = Vec2(maxX, 0);
+				}
+				else if (_player->rightFlag == false)
+				{
+					_player->magicPosition = Vec2(minX, 0);
+				}
+
 			}
 		}
 		return true;
 	};
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
 
-	//‰æ–ÊƒTƒCƒYŽæ“¾
+	//ç”»é¢ã‚µã‚¤ã‚ºå–å¾—
 	Size winSize = Director::getInstance()->getWinSize();
-
-	//”wŒi•\Ž¦
+	/*
+	//èƒŒæ™¯è¡¨ç¤º
 	auto background1 = Sprite::create("graphics/sky.png");
 	background1->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 	background1->setPosition(Vec2(0, 0));
@@ -397,7 +456,7 @@ bool Stage::init()
 
 	background2->addChild(sky1);
 	background2->addChild(sky2);
-	//‰_“®‚©‚·
+	//é›²å‹•ã‹ã™
 	background2->runAction(
 		RepeatForever::create(
 		Sequence::create(
@@ -406,15 +465,14 @@ bool Stage::init()
 		NULL
 		)));
 
-	//”wŒi‹ó
+	//èƒŒæ™¯ç©º
 	this->addChild(background1);
-	//”wŒi‰_
+	//èƒŒæ™¯é›²
 	this->addChild(background2);
-
-	//ƒLƒƒƒ‰”z’u
+	*/
+	//ã‚­ãƒ£ãƒ©é…ç½®
 	auto luk = Player::create();
-	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE_BOTTOM);
-	luk->setPosition(Vec2(64, winSize.height / 2));
+	luk->setPosition(Vec2(111, 111));
 	luk->getTexture()->setAliasTexParameters();
 	this->setPlayer(luk);
 	this->addChild(luk);
@@ -422,30 +480,45 @@ bool Stage::init()
 
 	playerMove();
 
-	//æ‚ê‚é•”•ª
+	//ä¹—ã‚Œã‚‹éƒ¨åˆ†
 	auto map = TMXTiledMap::create("graphics/ground2.tmx");
-	map->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	//map->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 	//map->setPosition(Vec2(8, 0));
-	this->addChild(map);
-	this->setTiledMap(map);
+	//this->addChild(map);
+	//this->setTiledMap(map);
 	
 
-	//ƒŒƒCƒ„[’Šo
-	auto ground = map->getLayer("ground");
-	//ƒ}ƒbƒv‚Ì‘å‚«‚³
+	//ãƒ¬ã‚¤ãƒ¤ãƒ¼æŠ½å‡º
+	TMXLayer* layer = map->getLayer("ground");
+
+	//ãƒžãƒƒãƒ—ã®å¤§ãã•
 	auto mapSize = map->getMapSize();
-	for (int x = 0; x < mapSize.width; ++x)
+	for (int x = 0; x < mapSize.width; x++)
 	{
-		for (int y = 0; y < mapSize.height; ++y)
+		for (int y = 0; y < mapSize.height; y++)
 		{
 			auto coordinate = Vec2(x, y);
+			int tileID = layer->getTileGIDAt(coordinate);
+			if (tileID >= 1){
+				Blocks* blockGen = BlockGen(tileID);
+				blockGen->setPosition(Vec2(x * 16,y * 16));
+				this->addChild(blockGen);
+			}
 
- 			this->addPhysicsBody(ground, coordinate);
+			this->addPhysicsBody(layer, coordinate);
 		}
 	}
 
 
-	// ã‹L‚Ì’Ê‚èƒAƒjƒ[ƒVƒ‡ƒ“‚ð‰Šú‰»
+
+
+	testBlock = Sprite::create("graphics/white.png");
+	testBlock->setScale(16.0f);
+	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+
+	this->addChild(testBlock);
+
+	// ä¸Šè¨˜ã®é€šã‚Šã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ã‚’åˆæœŸåŒ–
 	_player->playAnimation(0);
 
 	this->scheduleUpdate();
