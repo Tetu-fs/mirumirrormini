@@ -54,7 +54,7 @@ public:
 
 	void testMethod();
 
-	Blocks* BlockGen(int GID);
+	Blocks* BlockGen(int gid);
 
 	CC_SYNTHESIZE(bool, _jumpFlag, JumpFlag);
 

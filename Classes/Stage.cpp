@@ -349,25 +349,20 @@ void Stage::testMethod()
 
 }
 
-Blocks* Stage::BlockGen(int GID)
+Blocks* Stage::BlockGen(int gid)
 {
 	Blocks* blockGen = Blocks::create();
-	//auto blocks = Sprite::create("graphics/mapchip_00.png");
+
 
 
 	auto tileSize = Size(5, 4);
 
 	const int X_MAX = tileSize.width;
 
-	rectX = ((GID - 1) % X_MAX + 1) - 1;	
-	rectY = (int)((GID - 1) / X_MAX);
-	log("rectX = %d", rectX);
-	log("rectY = %d", rectY);
+	rectX = ((gid - 1) % X_MAX + 1) - 1;	
+	rectY = (int)((gid - 1) / X_MAX);
+
 	blockGen->setTextureRect(Rect(rectX * BLOCK_SIZE, rectY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE));
-
-
-
-	//SpriteFrame::create("graphics/mapchip_00.png", Rect(0, 0, BLOCK_SIZE, BLOCK_SIZE));
 
 	return blockGen;
 }
@@ -499,12 +494,14 @@ bool Stage::init()
 		{
 			auto coordinate = Vec2(x, y);
 			int tileID = layer->getTileGIDAt(coordinate);
+			auto tileMap = layer->getTileAt(coordinate);
+	
 			if (tileID >= 1){
 				Blocks* blockGen = BlockGen(tileID);
-				blockGen->setPosition(Vec2(x * 16,y * 16));
+				blockGen->setPosition(tileMap->getPosition());
 				this->addChild(blockGen);
+				tileMap->removeFromParent();
 			}
-
 			this->addPhysicsBody(layer, coordinate);
 		}
 	}
