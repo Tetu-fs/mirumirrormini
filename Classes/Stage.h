@@ -17,6 +17,8 @@ protected:
 
 	bool upPressFlag;
 
+	bool goalFlag;
+
 	void playerMove();
 	void jumpMethod();
 	float testX;
@@ -40,12 +42,14 @@ public:
 	enum TileType
 	{
 		BLOCKS = 1 << 0,
+		GOAL =1<<1,
 		PLAYER = 2 << 0
 	};
 
 	cocos2d::Vec2 _velocity;
 	cocos2d::Vec2 _prevPosition;
 
+	cocos2d::Vec2 _playerPosition;
 	cocos2d::Vec2 _mirrorPosition;
 
 	void update(float dt) override;
@@ -67,7 +71,7 @@ public:
 
 
 private:
-	cocos2d::Sprite* addPhysicsBody(cocos2d::TMXLayer*layer, cocos2d::Vec2&coodinate);
+	//cocos2d::Sprite* addPhysicsBody(cocos2d::TMXLayer*layer, cocos2d::Vec2&coodinate);
 
 };
 
