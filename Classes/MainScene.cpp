@@ -25,7 +25,7 @@ Scene* MainScene::createScene()
 
 #if COCOS2D_DEBUG > 0
 	
-	//world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
 #endif
 

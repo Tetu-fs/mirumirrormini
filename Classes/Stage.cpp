@@ -18,6 +18,7 @@ Stage::Stage()
 	, _magic(nullptr)
 	, testX(0)
 	, testY(0)
+
 	
 	, blockX(0)
 	, blockY(0)
@@ -144,33 +145,21 @@ Blocks* Stage::BlockGen(int gid)
 {
 	Blocks* blockGen = Blocks::create();
 	blockGen->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	Point box[4]{Point(-8, 0), Point(-8, 8), Point(8, 8), Point(8, 0)};
+	//剛体マテリアル設定
 	auto material = PhysicsMaterial();
 	//摩擦
 	material.friction = 99;
 	material.restitution = 0.0;
-	if (gid != 2 && gid != 3 && gid !=5 && gid != 10)
-	{
-		Point box[4]{Point(-8, 0), Point(-8, 8), Point(8, 8), Point(8, 0)};
-		auto physicsBody = PhysicsBody::createEdgePolygon(box, 4, material);
-		physicsBody->setDynamic(false);
-		physicsBody->setCategoryBitmask(1);
-		physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
-		physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
 
-		blockGen->setPhysicsBody(physicsBody);
-	}
+	//剛体設置
 
-	if (gid==10)
-	{
-		Point goal[4]{Point(-7, -8), Point(-7, -8), Point(7, -7), Point(7, -7)};
-		auto goalPhysics = PhysicsBody::createEdgePolygon(goal, 4, material);
-		goalPhysics->setDynamic(false);
-		goalPhysics->setCategoryBitmask(2);
-		goalPhysics->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
-		goalPhysics->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
-
-		blockGen->setPhysicsBody(goalPhysics);
-	}
+	auto category = 1;
+	auto physicsBody = PhysicsBody::createEdgePolygon(box, 4, material);
+	physicsBody->setDynamic(false);
+	physicsBody->setCategoryBitmask(category);
+	physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
+	physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
 	auto tileSize = Size(5, 4);
 
 	const int X_MAX = tileSize.width;
@@ -180,192 +169,13 @@ Blocks* Stage::BlockGen(int gid)
 
 	blockGen->setTextureRect(Rect(rectX * BLOCK_SIZE, rectY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE));
 
+	blockGen->setPhysicsBody(physicsBody);
+
+	auto blockRect = blockGen->getBoundingBox();
+
+	//blockRect;
 	return blockGen;
 }
-
-bool Stage::init()
-{
-	if (!Layer::init())
-	{
-		return false;
-	}
-
-	//剛体の接触チェック
-	auto contactListener = EventListenerPhysicsContact::create();
-	contactListener->onContactBegin = [this](PhysicsContact&contact){
-
-		//プレイヤーではない方を抽出
-		auto floor = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
-		auto floorBody = floor->getBody();
-		//カテゴリ抽出
-		auto category = floorBody->getCategoryBitmask();
-
-		Rect floorRect = floorBody->getNode()->getBoundingBox();
-		float floorTopY = floorRect.origin.y + floorRect.size.height;
-
-		float minX = floorRect.origin.x;
-		float midX = (floorRect.origin.x + floorRect.size.width / 2);
-		float maxX = floorRect.origin.x + floorRect.size.width - 1.0;
-
-		Rect playerRect = _player->getBoundingBox();
-		float playerBottomY = playerRect.origin.y;
-		float playerX = _player->getPosition().x;
-
-
-		bool isContains = minX <= playerX && playerX <= maxX;
-
-		auto checkDot = Sprite::create("graphics/white.png");
-		checkDot->setPosition(minX, floorTopY);
-		checkDot->setScale(2.0f);
-
-		if (category & static_cast<int>(Stage::TileType::BLOCKS))
-		{
-			this->addChild(checkDot);
-
-			if (floorTopY <= playerBottomY)
-			{
-				setJumpFlag(true);
-			}
-
-			if (isContains == true)
-			{
-				if (_player->rightFlag == true)
-				{
-					log("check X=%d", (int)_player->getPosition().x+8);
-
-						_player->magicPosition = Vec2(maxX, 0);
-				}
-				else if (_player->rightFlag == false)
-				{
-					log("check X=%d", (int)_player->getPosition().x + 8);
-						_player->magicPosition = Vec2(minX, 0);
-				}
-
-			}
-		}
-
-		if (category & static_cast<int>(Stage::TileType::GOAL))
-		{
-			if (isContains == true)
-			{
-				goalFlag = true;
-			}
-		}
-		else
-		{
-			goalFlag = false;
-		}
-		return true;
-	};
-	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
-
-	//画面サイズ取得
-	Size winSize = Director::getInstance()->getWinSize();
-	/*
-	//背景表示
-	auto background1 = Sprite::create("graphics/sky.png");
-	background1->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	background1->setPosition(Vec2(0, 0));
-	background1->getTexture()->setAliasTexParameters();
-
-	auto background2 = Node::create();
-	background2->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-
-	auto sky1 = Sprite::create("graphics/cloud.png");
-	sky1->setPosition(Vec2(0, 0));
-	sky1->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	sky1->getTexture()->setAliasTexParameters();
-
-	auto sky2 = Sprite::create("graphics/cloud.png");
-	sky2->setPosition(winSize.width, 0);
-	sky2->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	sky2->getTexture()->setAliasTexParameters();
-
-	background2->addChild(sky1);
-	background2->addChild(sky2);
-	//雲動かす
-	background2->runAction(
-		RepeatForever::create(
-		Sequence::create(
-		MoveTo::create(32, (Vec2(-winSize.width, 0))),
-		Place::create(Vec2::ZERO),
-		NULL
-		)));
-
-	//背景空
-	this->addChild(background1);
-	//背景雲
-	this->addChild(background2);
-	*/
-	//乗れる部分
-	auto map = TMXTiledMap::create("graphics/ground2.tmx");
-	//map->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	
-	//this->addChild(map);
-	//this->setTiledMap(map);
-	
-
-	//レイヤー抽出
-	TMXLayer* layer = map->getLayer("ground");
-
-	//マップの大きさ
-	auto mapSize = map->getMapSize();
-	auto category = 1;
-
-
-	for (int x = 0; x < mapSize.width; x++)
-	{
-		for (int y = 0; y < mapSize.height; y++)
-		{
-			auto coordinate = Vec2(x, y);
-			int tileID = layer->getTileGIDAt(coordinate);
-			auto tileMap = layer->getTileAt(coordinate);
-	
-			if (tileID >= 1){
-
-				Blocks* blockGen = BlockGen(tileID);
-				blockGen->setPosition(tileMap->getPosition());
-				this->addChild(blockGen);
-
-				tileMap->removeFromParent();
-
-			}			
-		}
-	}
-
-	//キャラ配置
-	auto luk = Player::create();
-	luk->setPosition(Vec2(0, 91));
-	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-	luk->getTexture()->setAliasTexParameters();
-	this->setPlayer(luk);
-	this->addChild(luk);
-	_prevPosition = _player->getPosition();
-
-	playerMove();
-
-	testBlock = Sprite::create("graphics/white.png");
-	testBlock->setScale(16.0f);
-	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-
-	this->addChild(testBlock);
-
-	// 上記の通りアニメーションを初期化
-	_player->playAnimation(0);
-
-	this->scheduleUpdate();
-
-	return true;
-
-}
-void Stage::testMethod()
-{
-	//log("%d", (int)_player->getPosition().x);
-
-	testX = ((int)_player->getPosition().x) / 16;
-	testY = ((int)_player->getPosition().y) / 16;
-}
-
 void Stage::update(float dt)
 {
 
@@ -480,5 +290,203 @@ void Stage::update(float dt)
 	testMethod();
 	testVec = Vec2(testX * 16, testY * 16);
 	testBlock->setPosition(testVec);
+	
+	if (_nowBlock.size() > 0)
+	{
+		//log("%d",_nowBlock.front().x);
+
+	}
+	
+}
+bool Stage::init()
+{
+	if (!Layer::init())
+	{
+		return false;
+	}
+	auto backGroundLayer = Stage::Layer
+
+	//剛体の接触チェック
+	auto contactListener = EventListenerPhysicsContact::create();
+	/*たぶん今接地してる床リストみたいなのを作って
+	Begin/Separateでそれぞれ追加、削除してやって
+	updateで接地してる床リストの座標をチェックするとかかな。良い方法は*/
+
+
+	contactListener->onContactBegin = [this](PhysicsContact&contact){
+
+		//プレイヤーではない方を抽出
+		PhysicsShape* floor = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
+		Node* floorNode = floor->getBody()->getNode();
+		nowBlockPosition = floorNode->getPosition();
+		Vec2 worldPos = floorNode->getParent()->convertToWorldSpace(floorNode->getPosition());
+		log("%f", worldPos.x);
+		_nowBlock.push_back(nowBlockPosition);
+		log("std::_nowBlock.size = %d", _nowBlock.size());
+		//カテゴリ抽出
+		int category = floorNode->getPhysicsBody()->getCategoryBitmask();
+
+		Rect floorRect = floorNode->getBoundingBox();
+		float floorTopY = floorRect.origin.y + floorRect.size.height;
+
+		float minX = floorRect.origin.x;
+		float midX = (floorRect.origin.x + floorRect.size.width / 2);
+		float maxX = floorRect.origin.x + floorRect.size.width - 1.0;
+		Rect playerRect = _player->getBoundingBox();
+		float playerBottomY = playerRect.origin.y;
+		float playerX = _player->getPosition().x;
+
+		//bool isContains = minX <= playerX && playerX <= maxX;
+
+		auto checkDot = Sprite::create("graphics/white.png");
+		checkDot->setPosition(minX, floorTopY);
+		checkDot->setScale(2.0f);
+
+		if (category & static_cast<int>(Stage::TileType::BLOCKS))
+		{
+			this->addChild(checkDot);
+
+			if (floorTopY <= playerBottomY)
+			{
+				setJumpFlag(true);
+			}
+			if (_player->rightFlag == true)
+			{
+				log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
+				log("check nowBlockPosition.x =%d", (int)nowBlockPosition.y);
+
+				_player->magicPosition = Vec2(maxX, 0);
+			}
+			else if (_player->rightFlag == false)
+			{
+				log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
+
+				_player->magicPosition = Vec2(minX, 0);
+			}
+		}
+
+		if (category & static_cast<int>(Stage::TileType::GOAL))
+		{
+				goalFlag = true;
+		}
+		else
+		{
+			goalFlag = false;
+		}
+		return true;
+	};
+	contactListener->onContactSeperate = [this](PhysicsContact&contact){
+		_nowBlock.pop_back();
+		log("std::_nowBlock.size = %d", _nowBlock.size());
+
+	};
+	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
+
+	//画面サイズ取得
+	Size winSize = Director::getInstance()->getWinSize();
+	/*
+	//背景表示
+	auto background1 = Sprite::create("graphics/sky.png");
+	background1->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	background1->setPosition(Vec2(0, 0));
+	background1->getTexture()->setAliasTexParameters();
+
+	auto background2 = Node::create();
+	background2->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+
+	auto sky1 = Sprite::create("graphics/cloud.png");
+	sky1->setPosition(Vec2(0, 0));
+	sky1->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	sky1->getTexture()->setAliasTexParameters();
+
+	auto sky2 = Sprite::create("graphics/cloud.png");
+	sky2->setPosition(winSize.width, 0);
+	sky2->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	sky2->getTexture()->setAliasTexParameters();
+
+	background2->addChild(sky1);
+	background2->addChild(sky2);
+	//雲動かす
+	background2->runAction(
+		RepeatForever::create(
+		Sequence::create(
+		MoveTo::create(32, (Vec2(-winSize.width, 0))),
+		Place::create(Vec2::ZERO),
+		NULL
+		)));
+
+	//背景空
+	this->addChild(background1);
+	//背景雲
+	this->addChild(background2);
+	*/
+	//乗れる部分
+	auto map = TMXTiledMap::create("graphics/ground2.tmx");
+	//map->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	
+	//this->addChild(map);
+	//this->setTiledMap(map);
+	
+
+	//レイヤー抽出
+	TMXLayer* layer = map->getLayer("ground");
+
+	//マップの大きさ
+	auto mapSize = map->getMapSize();
+	auto category = 1;
+
+
+	for (int x = 0; x < mapSize.width; x++)
+	{
+		for (int y = 0; y < mapSize.height; y++)
+		{
+			auto coordinate = Vec2(x, y);
+			int tileID = layer->getTileGIDAt(coordinate);
+			auto tileMap = layer->getTileAt(coordinate);
+	
+			if (tileID >= 1){
+
+				Blocks* blockGen = BlockGen(tileID);
+				blockGen->setPosition((tileMap->getPosition().x), tileMap->getPosition().y);
+				this->addChild(blockGen);
+				
+
+				tileMap->removeFromParent();
+
+			}			
+		}
+	}
+
+	//キャラ配置
+	auto luk = Player::create();
+	luk->setPosition(Vec2(0, 91));
+	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	luk->getTexture()->setAliasTexParameters();
+	this->setPlayer(luk);
+	this->addChild(luk);
+	_prevPosition = _player->getPosition();
+
+	playerMove();
+
+	testBlock = Sprite::create("graphics/white.png");
+	testBlock->setScale(16.0f);
+	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+
+	this->addChild(testBlock);
+
+	// 上記の通りアニメーションを初期化
+	_player->playAnimation(0);
+
+	this->scheduleUpdate();
+
+	return true;
 
 }
+void Stage::testMethod()
+{
+	//log("%d", (int)_player->getPosition().x);
+
+	testX = ((int)_player->getPosition().x) / 16;
+	testY = ((int)_player->getPosition().y) / 16;
+}
+
