@@ -145,7 +145,6 @@ Blocks* Stage::BlockGen(int gid)
 {
 	Blocks* blockGen = Blocks::create();
 	blockGen->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-	Point box[4]{Point(-8, 0), Point(-8, 8), Point(8, 8), Point(8, 0)};
 	//剛体マテリアル設定
 	auto material = PhysicsMaterial();
 	//摩擦
@@ -153,15 +152,16 @@ Blocks* Stage::BlockGen(int gid)
 	material.restitution = 0.0;
 
 	//剛体設置
-
+	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9){
 	auto category = 1;
-	auto physicsBody = PhysicsBody::createEdgePolygon(box, 4, material);
+	auto physicsBody = PhysicsBody::createBox(Size(16,16),material);
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
 	physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
 	physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
+	blockGen->setPhysicsBody(physicsBody);
+	}
 	auto tileSize = Size(5, 4);
-
 	const int X_MAX = tileSize.width;
 
 	rectX = ((gid - 1) % X_MAX + 1) - 1;
@@ -169,10 +169,9 @@ Blocks* Stage::BlockGen(int gid)
 
 	blockGen->setTextureRect(Rect(rectX * BLOCK_SIZE, rectY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE));
 
-	blockGen->setPhysicsBody(physicsBody);
 
 	auto blockRect = blockGen->getBoundingBox();
-
+	blockGen->BlockVecConvert();
 	//blockRect;
 	return blockGen;
 }
@@ -290,13 +289,21 @@ void Stage::update(float dt)
 	testMethod();
 	testVec = Vec2(testX * 16, testY * 16);
 	testBlock->setPosition(testVec);
-	
-	if (_nowBlock.size() > 0)
-	{
-		//log("%d",_nowBlock.front().x);
 
+	if (_neighborBlockPositions.size() > 0)
+	{
+		Rect blockRect = Rect(_neighborBlockPositions.back().x, _neighborBlockPositions.back().y, 16, 16);
+
+		for (Vec2 point : _neighborBlockPositions)
+		{
+			if (_player->getPosition().x - blockRect.origin.x >= 0 && _player->getPosition().x - blockRect.origin.x < 16)
+			{
+				log("RectX = %f", blockRect.origin.x);
+				log("RectY = %f", blockRect.origin.y);
+			}
+		}
 	}
-	
+
 }
 bool Stage::init()
 {
@@ -304,7 +311,8 @@ bool Stage::init()
 	{
 		return false;
 	}
-	auto backGroundLayer = Stage::Layer
+	//auto backGroundLayer = Stage::create();
+
 
 	//剛体の接触チェック
 	auto contactListener = EventListenerPhysicsContact::create();
@@ -316,52 +324,55 @@ bool Stage::init()
 	contactListener->onContactBegin = [this](PhysicsContact&contact){
 
 		//プレイヤーではない方を抽出
-		PhysicsShape* floor = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
-		Node* floorNode = floor->getBody()->getNode();
-		nowBlockPosition = floorNode->getPosition();
-		Vec2 worldPos = floorNode->getParent()->convertToWorldSpace(floorNode->getPosition());
-		log("%f", worldPos.x);
-		_nowBlock.push_back(nowBlockPosition);
-		log("std::_nowBlock.size = %d", _nowBlock.size());
+		PhysicsShape* ground = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
+		Node* groundNode = ground->getBody()->getNode();
+		nowBlockPosition = groundNode->getPosition();
+		Vec2 worldPos = groundNode->getParent()->convertToWorldSpace(groundNode->getPosition());
+		//log("%f", worldPos.x);
+		_neighborBlockPositions.push_back(nowBlockPosition);
+
 		//カテゴリ抽出
-		int category = floorNode->getPhysicsBody()->getCategoryBitmask();
+		int category = groundNode->getPhysicsBody()->getCategoryBitmask();
 
-		Rect floorRect = floorNode->getBoundingBox();
-		float floorTopY = floorRect.origin.y + floorRect.size.height;
+		Rect groundRect = groundNode->getBoundingBox();
+		float groundTopY = groundRect.origin.y + groundRect.size.height;
 
-		float minX = floorRect.origin.x;
-		float midX = (floorRect.origin.x + floorRect.size.width / 2);
-		float maxX = floorRect.origin.x + floorRect.size.width - 1.0;
+		float minX = groundRect.origin.x;
+		float midX = (groundRect.origin.x + groundRect.size.width / 2);
+		float maxX = groundRect.origin.x + groundRect.size.width - 1.0;
 		Rect playerRect = _player->getBoundingBox();
 		float playerBottomY = playerRect.origin.y;
 		float playerX = _player->getPosition().x;
 
-		//bool isContains = minX <= playerX && playerX <= maxX;
+		bool isContains = minX <= playerX && playerX <= maxX;
 
 		auto checkDot = Sprite::create("graphics/white.png");
-		checkDot->setPosition(minX, floorTopY);
+		checkDot->setPosition(minX, groundTopY);
 		checkDot->setScale(2.0f);
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
 			this->addChild(checkDot);
 
-			if (floorTopY <= playerBottomY)
+			if (groundTopY <= playerBottomY)
 			{
 				setJumpFlag(true);
 			}
-			if (_player->rightFlag == true)
+			if (isContains == true)
 			{
-				log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
-				log("check nowBlockPosition.x =%d", (int)nowBlockPosition.y);
-
-				_player->magicPosition = Vec2(maxX, 0);
-			}
-			else if (_player->rightFlag == false)
-			{
-				log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
-
-				_player->magicPosition = Vec2(minX, 0);
+				if (_player->rightFlag == true)
+				{
+					log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
+					log("check nowBlockPosition.x =%d", (int)nowBlockPosition.y);
+					//log("std::_neighborBlockPositions.size = %d", _neighborBlockPositions.size());
+					_player->magicPosition = Vec2(maxX, 0);
+				}
+				else if (_player->rightFlag == false)
+				{
+					log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
+					//log("std::_neighborBlockPositions.size = %d", _neighborBlockPositions.size());
+					_player->magicPosition = Vec2(minX, 0);
+				}
 			}
 		}
 
@@ -376,8 +387,8 @@ bool Stage::init()
 		return true;
 	};
 	contactListener->onContactSeperate = [this](PhysicsContact&contact){
-		_nowBlock.pop_back();
-		log("std::_nowBlock.size = %d", _nowBlock.size());
+		_neighborBlockPositions.pop_back();
+		//log("std::_neighborBlockPositions.size = %d", _neighborBlockPositions.size());
 
 	};
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
@@ -447,9 +458,10 @@ bool Stage::init()
 			if (tileID >= 1){
 
 				Blocks* blockGen = BlockGen(tileID);
-				blockGen->setPosition((tileMap->getPosition().x), tileMap->getPosition().y);
+				blockGen->setPosition(tileMap->getPosition());
 				this->addChild(blockGen);
 				
+				log("%f", blockGen->BlockVecConvert().y);
 
 				tileMap->removeFromParent();
 
@@ -460,9 +472,10 @@ bool Stage::init()
 	//キャラ配置
 	auto luk = Player::create();
 	luk->setPosition(Vec2(0, 91));
-	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	luk->getTexture()->setAliasTexParameters();
 	this->setPlayer(luk);
+
+	_player->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	this->addChild(luk);
 	_prevPosition = _player->getPosition();
 

@@ -1,6 +1,7 @@
 #ifndef __STAGE_H__
 #define __STAGE_H__
 #include "vector"
+#include "math\CCMath.h"
 #include "cocos2d.h"
 #include "Player.h"
 #include "Blocks.h"
@@ -56,7 +57,7 @@ public:
 	cocos2d::Vec2 _floorVec;
 	cocos2d::Vec2 nowBlockPosition;
 
-	std::vector<cocos2d::Vec2> _nowBlock;
+	std::vector<cocos2d::Vec2> _neighborBlockPositions;
 
 	void update(float dt) override;
 

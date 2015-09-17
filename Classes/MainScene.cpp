@@ -45,7 +45,7 @@ bool MainScene::init()
 		return false;
 	}
 	auto stage = Stage::create();
-
+	stage->setPosition(8, 8);
 	this->setStage(stage);
 	this->addChild(stage);
 
