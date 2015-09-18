@@ -175,6 +175,17 @@ Blocks* Stage::BlockGen(int gid)
 	//blockRect;
 	return blockGen;
 }
+Vec2 Blocks::BlockVecConvert()
+{
+	const float MAP_HEIGHT = 14;
+
+	auto Position = this->getPosition();
+	float x = floor((Position.x + 8) / 16);
+	float y = MAP_HEIGHT - floor((Position.y + 8) / 16) - 1;
+	//log("%f");
+	return  Vec2(x, y);
+}
+
 void Stage::update(float dt)
 {
 
@@ -290,16 +301,19 @@ void Stage::update(float dt)
 	testVec = Vec2(testX * 16, testY * 16);
 	testBlock->setPosition(testVec);
 
+	auto checkVec = Vec2(_player->getPosition());
+
 	if (_neighborBlockPositions.size() > 0)
 	{
-		Rect blockRect = Rect(_neighborBlockPositions.back().x, _neighborBlockPositions.back().y, 16, 16);
 
+		Rect blockRect = Rect(_neighborBlockPositions.back().x, _neighborBlockPositions.back().y, 16, 16);
+	
 		for (Vec2 point : _neighborBlockPositions)
 		{
-			if (_player->getPosition().x - blockRect.origin.x >= 0 && _player->getPosition().x - blockRect.origin.x < 16)
+			if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 			{
 				log("RectX = %f", blockRect.origin.x);
-				log("RectY = %f", blockRect.origin.y);
+
 			}
 		}
 	}
@@ -362,15 +376,11 @@ bool Stage::init()
 			{
 				if (_player->rightFlag == true)
 				{
-					log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
-					log("check nowBlockPosition.x =%d", (int)nowBlockPosition.y);
-					//log("std::_neighborBlockPositions.size = %d", _neighborBlockPositions.size());
 					_player->magicPosition = Vec2(maxX, 0);
 				}
 				else if (_player->rightFlag == false)
 				{
 					log("check nowBlockPosition.x =%d", (int)nowBlockPosition.x);
-					//log("std::_neighborBlockPositions.size = %d", _neighborBlockPositions.size());
 					_player->magicPosition = Vec2(minX, 0);
 				}
 			}
@@ -461,7 +471,7 @@ bool Stage::init()
 				blockGen->setPosition(tileMap->getPosition());
 				this->addChild(blockGen);
 				
-				log("%f", blockGen->BlockVecConvert().y);
+				//log("%f", blockGen->BlockVecConvert().y);
 
 				tileMap->removeFromParent();
 
@@ -471,21 +481,30 @@ bool Stage::init()
 
 	//キャラ配置
 	auto luk = Player::create();
-	luk->setPosition(Vec2(0, 91));
-	luk->getTexture()->setAliasTexParameters();
 	this->setPlayer(luk);
-
+	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	_player->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+
+	luk->setPosition(Vec2(0, 64));
+	luk->getTexture()->setAliasTexParameters();
+
 	this->addChild(luk);
-	_prevPosition = _player->getPosition();
+	_prevPosition = luk->getPosition();
 
 	playerMove();
+
+
 
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setScale(16.0f);
 	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-
 	this->addChild(testBlock);
+
+	sprite = Sprite::create("graphics/white.png");
+	sprite->setScale(4.0f);
+	this->addChild(sprite);
+
+
 
 	// 上記の通りアニメーションを初期化
 	_player->playAnimation(0);
@@ -497,8 +516,6 @@ bool Stage::init()
 }
 void Stage::testMethod()
 {
-	//log("%d", (int)_player->getPosition().x);
-
 	testX = ((int)_player->getPosition().x) / 16;
 	testY = ((int)_player->getPosition().y) / 16;
 }

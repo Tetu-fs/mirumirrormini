@@ -22,6 +22,8 @@ public:
 
 	void jump();
 	void playAnimation(int index);
+
+
 	Magic* magic;
 
 	Magic* MirrorMethod();

@@ -38,6 +38,7 @@ protected:
 	cocos2d::Vec2 testVec;
 
 	cocos2d::Sprite* testBlock;
+	cocos2d::Sprite* sprite;
 
 public:
 

@@ -35,7 +35,6 @@ bool Player::init()
 	body->setContactTestBitmask(INT_MAX);
 
 	this->setPhysicsBody(body);
-
 	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	this->scheduleUpdate();
 	return true;
@@ -149,4 +148,5 @@ void Player::playAnimation(int index)
 
 	//indexCheck‚Éindex‚Ì’l‚ð‘ã“ü‚·‚é
 	indexCheck = index;
+
 }
