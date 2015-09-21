@@ -5,7 +5,8 @@ USING_NS_CC;
 const int FRAME_COUNT = 3;
 Player::Player()
 	:indexCheck(-1)
-	, magicPosition(0,0)
+	, LRMagicPosition(0,0)
+	, UDMagicPosition(0, 0)
 {
 }
 
@@ -21,13 +22,15 @@ bool Player::init()
 		return false;
 	}
 
-
+	auto material = PhysicsMaterial();
+	//–€ŽC
+	material.friction = 99;
+	material.restitution = 0.0;
 	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
 
-	auto body = PhysicsBody::createPolygon(PBox,4);
+	auto body = PhysicsBody::createPolygon(PBox, 4, material);
 	body->setRotationEnable(false);
 	body->setVelocityLimit(30.0);
-	//
 	body->setCategoryBitmask(static_cast<int>(Stage::TileType::PLAYER));
 	//BLOCKS‚Æ‚ÌÚG”»’è‚ðON
 	body->setCollisionBitmask(static_cast<int>(Stage::TileType::BLOCKS));
@@ -41,7 +44,30 @@ bool Player::init()
 }
 
 
-Magic* Player::MirrorMethod()
+Magic* Player::upDownMirrorEffect()
+{
+	Size winSize = Director::getInstance()->getWinSize();
+	magic = Magic::create();
+	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	float whiteUpScale = 244 * 2;
+	float whiteDownScale = -244 * 2;
+
+	magic->setScaleX((16 * 24) * 3);
+
+	if (upFlag == true)
+	{
+		magic->setScaleY(whiteUpScale);
+	}
+
+	else
+	{
+		magic->setScaleY(whiteDownScale);
+	}
+
+	return magic;
+}
+
+Magic* Player::sideMirrorEffect()
 {
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
@@ -49,14 +75,14 @@ Magic* Player::MirrorMethod()
 	float whiteRightScale = 384 * 2;
 	float whiteLeftScale = -384 * 2;
 
-	magic->setScaleY(240.0);
+	magic->setScaleY((16 * 14) * 3);
 
 	if (rightFlag == true)
 	{
 		magic->setScaleX(whiteRightScale);
 	}
 
-	else if (rightFlag == false)
+	else
 	{
 		magic->setScaleX(whiteLeftScale);
 	}

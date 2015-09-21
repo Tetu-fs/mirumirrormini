@@ -14,7 +14,7 @@ protected:
 
 public:
 
-	cocos2d::Vec2 BlockVecConvert();
+	
 	cocos2d::Vec2 BlockVec;
 	CREATE_FUNC(Blocks);
 

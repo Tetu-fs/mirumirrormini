@@ -25,7 +25,7 @@ Scene* MainScene::createScene()
 
 #if COCOS2D_DEBUG > 0
 	
-	world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	//world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
 #endif
 
@@ -45,7 +45,6 @@ bool MainScene::init()
 		return false;
 	}
 	auto stage = Stage::create();
-	stage->setPosition(8, 8);
 	this->setStage(stage);
 	this->addChild(stage);
 

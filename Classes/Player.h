@@ -15,10 +15,12 @@ protected:
 
 public:
 
-	cocos2d::Vec2 magicPosition;
+	cocos2d::Vec2 LRMagicPosition;
+	cocos2d::Vec2 UDMagicPosition;
 
-	bool magicLRFlag;
+	bool magicFlag;
 	bool rightFlag;
+	bool upFlag;
 
 	void jump();
 	void playAnimation(int index);
@@ -26,7 +28,8 @@ public:
 
 	Magic* magic;
 
-	Magic* MirrorMethod();
+	Magic* sideMirrorEffect();
+	Magic* upDownMirrorEffect();
 
 
 	CREATE_FUNC(Player);

@@ -13,8 +13,6 @@ bool Blocks::init()
 	{
 		return false;
 	}
-	BlockVec = Vec2(BlockVecConvert());
-
 	return true;
 }
 
