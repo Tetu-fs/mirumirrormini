@@ -21,6 +21,7 @@ public:
 	bool magicFlag;
 	bool rightFlag;
 	bool upFlag;
+	bool downFlag;
 
 	void jump();
 	void playAnimation(int index);

@@ -35,6 +35,14 @@ protected:
 	int rectY;
 	int tileID;
 
+	enum class GameState
+	{
+		PLAYING,
+
+		RESULT
+	};
+
+
 	//現在たっているブロック用のガイド
 	cocos2d::Vec2 testVec;
 
@@ -100,7 +108,7 @@ public:
 	CC_SYNTHESIZE_RETAIN(cocos2d::TMXTiledMap*, _tiledMap, TiledMap);
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CC_SYNTHESIZE_RETAIN(Blocks*, _blocks, Blocks);
-
+	CC_SYNTHESIZE(GameState, _state, State);
 	CREATE_FUNC(Stage);
 
 

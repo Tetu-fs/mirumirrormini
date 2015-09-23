@@ -8,6 +8,7 @@ Stage::Stage()
 	:_player(nullptr)
 	, _tiledMap(nullptr)
 	, _blocks(nullptr)
+	, _state(GameState::PLAYING)
 	, leftPressFlag(false)
 	, rightPressFlag(false)
 	, upPressFlag(false)
@@ -65,7 +66,6 @@ void Stage::playerMove()
 	//キーボードが押された時のstopを書く関数？
 	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
 	{
-
 		auto flip = FlipX::create(true);
 		auto flipback = FlipX::create(false);
 
@@ -97,19 +97,13 @@ void Stage::playerMove()
 			upPressFlag = true;
 
 		}
-		//もし押されたキーが↑だったら
-		if (keyCode == EventKeyboard::KeyCode::KEY_S)
-		{
 
-
-		}
 		//そうではなくもし押されたキーがスペースだったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
 		{
 			if (getJumpFlag() == true)
 			{
 				_player->magicFlag = true;
-
 				Magic* sideMagic = _player->sideMirrorEffect();
 				this->setSideMagic(sideMagic);
 				_sideMagic->setPosition(_player->LRMagicPosition);
@@ -162,6 +156,7 @@ void Stage::playerMove()
 		if (keyCode == EventKeyboard::KeyCode::KEY_W)
 		{
 			_player->upFlag = true;
+			if (_player->downFlag == true){ _player->downFlag = false; }
 			if (getJumpFlag() == true)
 			{
 				_player->magicFlag = true;
@@ -200,7 +195,8 @@ void Stage::playerMove()
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_S)
 		{
-			_player->upFlag = false;
+			_player->downFlag = true;
+			if (_player->upFlag == true){ _player->upFlag = false; }
 
 			if (getJumpFlag() == true)
 			{
@@ -358,9 +354,15 @@ void Stage::playerMove()
 		{
 			_player->magicFlag = false;
 		}
-		if (keyCode == EventKeyboard::KeyCode::KEY_W || keyCode == EventKeyboard::KeyCode::KEY_S)
+		if (keyCode == EventKeyboard::KeyCode::KEY_W)
 		{
 			_player->magicFlag = false;
+			_player->upFlag = false;
+		}
+		if (keyCode == EventKeyboard::KeyCode::KEY_S)
+		{
+			_player->magicFlag = false;
+			_player->downFlag = false;
 		}
 	};
 
@@ -385,7 +387,7 @@ Blocks* Stage::BlockGen(int gid)
 	//剛体設置
 	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9){
 	auto category = 1;
-	Point box[4]{Point(-8, 0), Point(-8, 8), Point(8, 8), Point(8, 0)};
+	Point box[4]{Point(-MAPCHIP_SIZE / 2, -MAPCHIP_SIZE / 2), Point(-MAPCHIP_SIZE / 2, MAPCHIP_SIZE / 2), Point(MAPCHIP_SIZE / 2, MAPCHIP_SIZE / 2), Point(MAPCHIP_SIZE / 2, -MAPCHIP_SIZE / 2)};
 	auto physicsBody = PhysicsBody::createEdgePolygon(box,4, material);
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
@@ -395,7 +397,7 @@ Blocks* Stage::BlockGen(int gid)
 	}
 	if (gid == 10)
 	{
-		Point goal[4]{Point(-7, -8), Point(-7, -8), Point(7, -7), Point(7, -7)};
+		Point goal[4]{Point(-4, -8), Point(-4, -8), Point(4, -7), Point(4, -7)};
 		auto goalPhysics = PhysicsBody::createEdgePolygon(goal, 4, material);
 		goalPhysics->setDynamic(false);
 		goalPhysics->setCategoryBitmask(2);
@@ -463,104 +465,131 @@ void Stage::update(float dt)
 	_playerPosition = _player->getPosition();
 
 	Size winSize = Director::getInstance()->getWinSize();
-	if (_playerPosition.x >= winSize.width)
+
+	if (_state == GameState::PLAYING)
 	{
-		_player->setPositionX(winSize.width);
+		if (_playerPosition.x >= winSize.width)
+		{
+			_player->setPositionX(winSize.width);
+			_velocity.x = 0;
+		}
+
+		else if (_playerPosition.x <= 0)
+		{
+			_player->setPositionX(0);
+			_velocity.x = 0;
+		}
+
+		if (_playerPosition.y >= winSize.height)
+		{
+			_player->setPositionY(winSize.height);
+			_velocity.y = 0;
+		}
+
+		else if (_playerPosition.y <= 0)
+		{
+			_player->setPositionY(0);
+			_velocity.y = 0;
+		}
+
+		auto flip = FlipX::create(true);
+		auto flipback = FlipX::create(false);
+
+		if (leftPressFlag == true)
+		{
+			if (getJumpFlag() == true)
+			{
+				_player->playAnimation(1);
+			}
+			_player->runAction(flip);
+			_velocity.x = -2;
+		}
+
+		if (rightPressFlag == true)
+		{
+			if (getJumpFlag() == true)		{
+				_player->playAnimation(1);
+			}
+			_player->runAction(flipback);
+			_velocity.x = 2;
+		}
+
+		if (leftPressFlag == false && rightPressFlag == false)
+		{
+			if (getJumpFlag() == true)
+			{
+				if (_player->magicFlag == true)
+				{
+
+					if (_player->upFlag == true)
+					{
+						_player->playAnimation(5);
+					}
+					else if (_player->downFlag == true)
+					{
+						_player->playAnimation(6);
+					}
+					else
+					{
+						_player->playAnimation(4);
+					}
+
+				}
+				else{ _player->playAnimation(0); }
+			}
+			_velocity.x = 0;
+		}
+
+		if (upPressFlag == true)
+		{
+			if (getJumpFlag() == true)
+			{
+				jumpMethod();
+			}
+		}
+
+		if (goalFlag == true)
+		{
+			if (_playerPosition.y == _prevPosition.y)
+			{
+				_state = GameState::RESULT;
+			}
+			_prevPosition = _playerPosition;
+
+		}
+
+		if (getJumpFlag() == false)
+		{
+
+			if (_playerPosition.y > _prevPosition.y)
+			{
+				_player->playAnimation(2);
+			}
+			else if (_playerPosition.y < _prevPosition.y)
+			{
+				_player->playAnimation(3);
+			}
+			_prevPosition = _playerPosition;
+		}
+
+
+		if (_player->magicFlag == false)
+		{
+			this->removeChild(_sideMagic);
+			this->removeChild(_upDownMagic);
+
+		}
+	}
+	if (_state == GameState::RESULT)
+	{
 		_velocity.x = 0;
+		_player->playAnimation(7); 
 	}
 
-	else if (_playerPosition.x <= 0)
-	{
-		_player->setPositionX(0);
-		_velocity.x = 0;
-	}
-
-	if (_playerPosition.y >= winSize.height)
-	{
-		_player->setPositionY(winSize.height);
-		_velocity.y = 0;
-	}
-
-	else if (_playerPosition.y <= 0)
-	{
-		_player->setPositionY(0);
-		_velocity.y = 0;
-	}
-
-	auto flip = FlipX::create(true);
-	auto flipback = FlipX::create(false);
-
-	if (leftPressFlag == true)
-	{
-		if (getJumpFlag() == true)
-		{
-			_player->playAnimation(1);
-		}
-		_player->runAction(flip);
-		_velocity.x = -2;
-	}
-
-	if (rightPressFlag == true)
-	{
-		if (getJumpFlag() == true)		{
-			_player->playAnimation(1);
-		}
-		_player->runAction(flipback);
-		_velocity.x = 2;
-	}
-
-	if (leftPressFlag == false && rightPressFlag == false)
-	{
-		if (getJumpFlag() == true)
-		{
-			_player->playAnimation(0);
-		}
-		_velocity.x = 0;
-	}
-
-	if (upPressFlag == true)
-	{
-		if (getJumpFlag() == true)
-		{
-			jumpMethod();
-		}
-	}
-
-	if (goalFlag == true)
-	{
-		if (_playerPosition.y == _prevPosition.y)
-		{
-			log("goal");
-		}
-		_prevPosition = _playerPosition;
-
-	}
-
-	if (getJumpFlag() == false)
-	{
-
-		if (_playerPosition.y > _prevPosition.y)
-		{
-			_player->playAnimation(2);
-		}
-		else if (_playerPosition.y < _prevPosition.y)
-		{
-			_player->playAnimation(3);
-		}
-		_prevPosition = _playerPosition;
-	}
-
-
-	if (_player->magicFlag == false)
-	{
-		this->removeChild(_sideMagic);
-		this->removeChild(_upDownMagic);
-
-	}
 
 	for (Vec2 point : _neighborBlockPositions)
 	{
-		Rect blockRect = Rect(point.x - 8, point.y - 8, MAPCHIP_SIZE, MAPCHIP_SIZE);
+		Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
 		if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 		{
 			_standBlockPosition = BlockVecConvert(point);
@@ -569,6 +598,7 @@ void Stage::update(float dt)
 			testBlock->setPosition(testVec);
 			if (_player->rightFlag == true)
 			{
+
 				_player->LRMagicPosition = Vec2(blockRect.getMaxX(), -224);
 			}
 			else
@@ -578,10 +608,12 @@ void Stage::update(float dt)
 
 			if (_player->upFlag == true)
 			{
+
 				_player->UDMagicPosition = Vec2(-384, blockRect.getMinY());
 			}
 			else
 			{
+
 				_player->UDMagicPosition = Vec2(-384,blockRect.getMaxY());
 			}
 		}
@@ -692,11 +724,6 @@ bool Stage::init()
 	
 	//乗れる部分
 	auto map = TMXTiledMap::create("graphics/ground2.tmx");
-	//map->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	
-	//this->addChild(map);
-	//this->setTiledMap(map);
-	
 
 	//レイヤー抽出
 	TMXLayer* layer = map->getLayer("ground");
@@ -704,7 +731,6 @@ bool Stage::init()
 	//マップの大きさ
 	auto mapSize = map->getMapSize();
 	auto category = 1;
-
 
 	for (int x = 0; x < mapSize.width; x++)
 	{
@@ -717,8 +743,9 @@ bool Stage::init()
 			if (tileID >= 1)
 			{
 				_blockGen = BlockGen(tileID);
-				_blockGen->setPosition(tileMap->getPosition().x + 8, tileMap->getPosition().y + 8);
+				_blockGen->setPosition(tileMap->getPosition().x + MAPCHIP_SIZE / 2, tileMap->getPosition().y + MAPCHIP_SIZE / 2);
 				this->addChild(_blockGen);
+
 				if (tileID == 4)
 				{
 					_mirrorAbleBlocks.push_back(_blockGen);
@@ -728,6 +755,7 @@ bool Stage::init()
 			}			
 		}
 	}
+
 
 	//キャラ配置
 	auto luk = Player::create();
@@ -741,9 +769,7 @@ bool Stage::init()
 	this->addChild(luk);
 	_prevPosition = luk->getPosition();
 
-	playerMove();
-
-
+	playerMove(); 
 
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setScale((float)MAPCHIP_SIZE);
@@ -751,7 +777,7 @@ bool Stage::init()
 	this->addChild(testBlock);
 
 	// 上記の通りアニメーションを初期化
-	_player->playAnimation(0);
+	//_player->playAnimation(0);
 
 	this->scheduleUpdate();
 

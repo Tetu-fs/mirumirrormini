@@ -5,6 +5,7 @@ USING_NS_CC;
 const int FRAME_COUNT = 3;
 Player::Player()
 	:indexCheck(-1)
+	, magicFlag(false)
 	, LRMagicPosition(0,0)
 	, UDMagicPosition(0, 0)
 {
@@ -120,34 +121,61 @@ void Player::playAnimation(int index)
 	//SpriteFrame*というテンプレートでframesという配列を宣言
 	Vector<SpriteFrame*> frames;
 
-		//変数iを宣言、0で初期化しiがFRAME_COUNT未満である時、変数iに1を加算し{}内の処理を行いループ
-		//iがFRAME_COUNT未満でなくなった時にループを抜ける
-		for (int i = 0; i < FRAME_COUNT; ++i)
-		{
-			// indexの値によってy座標を変える
-			//cocos2d::SpriteFrame型のポイント変数frameを宣言
-			//画像kawaz_shooting.pngを読み、frameSize.widthにiをかけ2コマアニメーションのループ
-			//indexに16(frameSize.heightの値)をかけ、アニメーションを切り替え
-			//frameSize.widthとframeSize.heightで表示する画像の大きさを指定？
-			auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * i, index * 24, frameSize.width, frameSize.height));
+	//変数iを宣言、0で初期化しiがFRAME_COUNT未満である時、変数iに1を加算し{}内の処理を行いループ
+	//iがFRAME_COUNT未満でなくなった時にループを抜ける
+	for (int i = 0; i < FRAME_COUNT; ++i)
+	{
+		// indexの値によってy座標を変える
+		//cocos2d::SpriteFrame型のポイント変数frameを宣言
+		//画像kawaz_shooting.pngを読み、frameSize.widthにiをかけ2コマアニメーションのループ
+		//indexに16(frameSize.heightの値)をかけ、アニメーションを切り替え
+		//frameSize.widthとframeSize.heightで表示する画像の大きさを指定？
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * i, index * frameSize.height, frameSize.width, frameSize.height));
 
-			//配列framesの終わりにframeの値を挿入する
-			frames.pushBack(frame);
-		}
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, index * 24, frameSize.width, frameSize.height));
+		//配列framesの終わりにframeの値を挿入する
 		frames.pushBack(frame);
+	}
+	auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, index * frameSize.height, frameSize.width, frameSize.height));
+	frames.pushBack(frame);
 
 	if (index == 2)
 	{
 		frames.clear();
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(16, 48, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, 2 * frameSize.height, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
 	}
 	else if (index == 3)
 	{
 		frames.clear();
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(32, 48, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * 2, 2 * frameSize.height, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
+	}
+	else if (index == 4)
+	{
+		frames.clear();
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(0, 3 * frameSize.height, frameSize.width, frameSize.height));
+		frames.pushBack(frame);
+	}
+	else if (index == 5)
+	{
+		frames.clear();
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, 3 * frameSize.height, frameSize.width, frameSize.height));
+		frames.pushBack(frame);
+	}
+	else if (index == 6)
+	{
+		frames.clear();
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * 2, 3 * frameSize.height, frameSize.width, frameSize.height));
+		frames.pushBack(frame);
+	}
+	else if (index == 7)
+	{
+		frames.clear();
+		for (int i = 0; i <= FRAME_COUNT; ++i)
+		{
+			auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * i, 96, frameSize.width, frameSize.height));
+			frames.pushBack(frame);
+		}
 	}
 
 	//cocos2d::Animation型のポインタ変数animationを宣言
@@ -157,20 +185,34 @@ void Player::playAnimation(int index)
 	{
 		animation->setDelayPerUnit(0.2);
 	}
+	else if (index == 7)
+	{
+		animation->setDelayPerUnit(0.3);
+	}
 	else
 	{
 		animation->setDelayPerUnit(0.1);
 	}
-	//cocos2d::RepeatForever型のポインタ変数animateを宣言　なんか闇っぽい
-	//Animate::create(animation)でanimationで宣言された2コマアニメを生成してるとおもう
-	//RepeatForeverは生成したアニメーションをを無限に繰り返す
-	auto animate = RepeatForever::create(Animate::create(animation));
+	if (index != 7)
+	{
+		//cocos2d::RepeatForever型のポインタ変数animateを宣言　なんか闇っぽい
+		//Animate::create(animation)でanimationで宣言された2コマアニメを生成してるとおもう
+		//RepeatForeverは生成したアニメーションをを無限に繰り返す
+		auto animate = RepeatForever::create(Animate::create(animation));
 
-	//ポインタ変数animateにACTION_TAGというタグを設定
-	animate->setTag(ACTION_TAG);
+		//ポインタ変数animateにACTION_TAGというタグを設定
+		animate->setTag(ACTION_TAG);
 
-	//animateというアクションを走らせる
-	this->runAction(animate);
+		//animateというアクションを走らせる
+		this->runAction(animate);
+	}
+	else
+	{
+		auto clearAnimate = Animate::create(animation);
+
+		clearAnimate->setTag(ACTION_TAG);
+		this->runAction(clearAnimate);
+	}
 
 	//indexCheckにindexの値を代入する
 	indexCheck = index;
