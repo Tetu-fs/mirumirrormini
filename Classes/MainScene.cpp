@@ -38,6 +38,7 @@ Scene* MainScene::createScene()
 	return scene;
 }
 
+
 bool MainScene::init()
 {
 	if (!Layer::init())

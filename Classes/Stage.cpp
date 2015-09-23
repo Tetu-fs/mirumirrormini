@@ -1,4 +1,7 @@
-﻿#include "Stage.h"
+﻿#include "MainScene.h"
+#include "Stage.h"
+#include "SimpleAudioEngine.h"
+
 USING_NS_CC;
 
 const Vec2 JUMP_IMPULSE = Vec2(0, 600);
@@ -66,6 +69,17 @@ void Stage::playerMove()
 	//キーボードが押された時のstopを書く関数？
 	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
 	{
+		if (keyCode == EventKeyboard::KeyCode::KEY_R)
+		{
+			auto scene = MainScene::createScene();
+			Director::getInstance()->replaceScene(scene);
+		}
+
+		if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
+		{
+			Director::getInstance()->end();
+		}
+
 		auto flip = FlipX::create(true);
 		auto flipback = FlipX::create(false);
 
@@ -73,7 +87,7 @@ void Stage::playerMove()
 		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)
 		{
 			leftPressFlag = true;
-
+			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_walk.wav",true);
 			_player->rightFlag = false;
 			if (rightPressFlag == true)
 			{
@@ -83,6 +97,8 @@ void Stage::playerMove()
 		//そうではなくもし、キーが→だったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
 		{
+			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_walk.wav", true);
+
 			rightPressFlag = true;
 			_player->rightFlag = true;
 
@@ -95,7 +111,7 @@ void Stage::playerMove()
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
 		{
 			upPressFlag = true;
-
+			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_walk.wav");
 		}
 
 		//そうではなくもし押されたキーがスペースだったら
@@ -387,7 +403,7 @@ Blocks* Stage::BlockGen(int gid)
 	//剛体設置
 	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9){
 	auto category = 1;
-	Point box[4]{Point(-MAPCHIP_SIZE / 2, -MAPCHIP_SIZE / 2), Point(-MAPCHIP_SIZE / 2, MAPCHIP_SIZE / 2), Point(MAPCHIP_SIZE / 2, MAPCHIP_SIZE / 2), Point(MAPCHIP_SIZE / 2, -MAPCHIP_SIZE / 2)};
+	Point box[4]{Point(-8, -8), Point(-8, 8), Point(8, 8), Point(8, -8)};
 	auto physicsBody = PhysicsBody::createEdgePolygon(box,4, material);
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
@@ -452,9 +468,21 @@ float Stage::StageVecConvertY(float blockAncorVecs)
 	//log("check = %f", floor((Position + 1)* MAPCHIP_SIZE) + MAPCHIP_SIZE / 2);
 	return  y;
 }
+void Stage::onEnterTransitionDidFinish()
+{
+	Layer::onEnterTransitionDidFinish();
+	auto soundEngine = CocosDenshion::SimpleAudioEngine::getInstance();
+	soundEngine->setBackgroundMusicVolume(0.6f);
+	soundEngine->preloadBackgroundMusic("sounds/main_bgm.wav");
+	soundEngine->preloadBackgroundMusic("sounds/se_clear.wav");
+
+	soundEngine->playBackgroundMusic("sounds/main_bgm.wav", true);
+
+	this->scheduleUpdate();
+}
+
 void Stage::update(float dt)
 {
-
 	//Vec2型の_velocityという変数を整数値に直す？
 	_velocity.normalize();
 
@@ -466,8 +494,7 @@ void Stage::update(float dt)
 
 	Size winSize = Director::getInstance()->getWinSize();
 
-	if (_state == GameState::PLAYING)
-	{
+
 		if (_playerPosition.x >= winSize.width)
 		{
 			_player->setPositionX(winSize.width);
@@ -494,7 +521,8 @@ void Stage::update(float dt)
 
 		auto flip = FlipX::create(true);
 		auto flipback = FlipX::create(false);
-
+		if (_state == GameState::PLAYING)
+		{
 		if (leftPressFlag == true)
 		{
 			if (getJumpFlag() == true)
@@ -520,6 +548,7 @@ void Stage::update(float dt)
 			{
 				if (_player->magicFlag == true)
 				{
+					CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_mirror.wav");
 
 					if (_player->upFlag == true)
 					{
@@ -553,6 +582,12 @@ void Stage::update(float dt)
 			if (_playerPosition.y == _prevPosition.y)
 			{
 				_state = GameState::RESULT;
+
+				if (_state == GameState::RESULT)
+				{
+					CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+					CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_clear.wav", false);
+				}
 			}
 			_prevPosition = _playerPosition;
 
@@ -572,7 +607,6 @@ void Stage::update(float dt)
 			_prevPosition = _playerPosition;
 		}
 
-
 		if (_player->magicFlag == false)
 		{
 			this->removeChild(_sideMagic);
@@ -583,6 +617,7 @@ void Stage::update(float dt)
 	if (_state == GameState::RESULT)
 	{
 		_velocity.x = 0;
+
 		_player->playAnimation(7); 
 	}
 
@@ -594,8 +629,8 @@ void Stage::update(float dt)
 		{
 			_standBlockPosition = BlockVecConvert(point);
 			//log("BlockVec = %f", _standBlockPosition.x);
-			testVec = Vec2(point);
-			testBlock->setPosition(testVec);
+			//testVec = Vec2(point);
+			//testBlock->setPosition(testVec);
 			if (_player->rightFlag == true)
 			{
 
@@ -618,6 +653,7 @@ void Stage::update(float dt)
 			}
 		}
 	}
+
 }
 bool Stage::init()
 {
@@ -748,6 +784,7 @@ bool Stage::init()
 
 				if (tileID == 4)
 				{
+					_blockGen->setLocalZOrder(5);
 					_mirrorAbleBlocks.push_back(_blockGen);
 				}
 
@@ -756,32 +793,40 @@ bool Stage::init()
 		}
 	}
 
-
 	//キャラ配置
 	auto luk = Player::create();
 	this->setPlayer(luk);
 	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	_player->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 
-	luk->setPosition(Vec2(0, 64));
+	luk->setPosition(Vec2(64, 92));
 	luk->getTexture()->setAliasTexParameters();
-
+	luk->setLocalZOrder(10);
 	this->addChild(luk);
 	_prevPosition = luk->getPosition();
 
 	playerMove(); 
-
+	/*
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setScale((float)MAPCHIP_SIZE);
 	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	this->addChild(testBlock);
+	*/
 
-	// 上記の通りアニメーションを初期化
-	//_player->playAnimation(0);
+	auto esc = Sprite::create("graphics/ESC.png");
+	esc->setPosition(Vec2(0,210));
+	esc->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
+	esc->getTexture()->setAliasTexParameters();
+	this->addChild(esc);
+
+	auto Retry = Sprite::create("graphics/Retry.png");
+	Retry->setPosition(Vec2(120, 210));
+	Retry->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
+	Retry->getTexture()->setAliasTexParameters();
+	this->addChild(Retry);
 
 	this->scheduleUpdate();
 
 	return true;
-
 }
 

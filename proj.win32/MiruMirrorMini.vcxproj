@@ -173,13 +173,13 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y</Command>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\graphics\cloud.png" />
+    <Image Include="..\Resources\graphics\ESC.png" />
     <Image Include="..\Resources\graphics\explosion_animate.png" />
     <Image Include="..\Resources\graphics\game.ico" />
     <Image Include="..\Resources\graphics\kawaz_shooting.png" />
     <Image Include="..\Resources\graphics\luk_sprite.png" />
     <Image Include="..\Resources\graphics\mapchip_00.png" />
-    <Image Include="..\Resources\graphics\mapchip_02.png" />
-    <Image Include="..\Resources\graphics\mapchip_03.png" />
+    <Image Include="..\Resources\graphics\Retry.png" />
     <Image Include="..\Resources\graphics\sky.png" />
     <Image Include="..\Resources\graphics\white.png" />
   </ItemGroup>
@@ -187,6 +187,12 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y</Command>
     <None Include="..\Resources\graphics\ground2.tmx">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\Resources\sounds\main_bgm.wav" />
+    <Media Include="..\Resources\sounds\se_clear.wav" />
+    <Media Include="..\Resources\sounds\se_mirror.wav" />
+    <Media Include="..\Resources\sounds\se_walk.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

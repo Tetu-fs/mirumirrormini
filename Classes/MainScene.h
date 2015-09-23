@@ -13,9 +13,9 @@ protected:
 	MainScene::MainScene();
 
 	virtual ~MainScene() override;
+
+
 public:
-
-
 
 	static cocos2d::Scene* createScene();
 

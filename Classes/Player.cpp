@@ -23,13 +23,11 @@ bool Player::init()
 		return false;
 	}
 
-	auto material = PhysicsMaterial();
-	//–€ŽC
-	material.friction = 99;
-	material.restitution = 0.0;
-	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
 
-	auto body = PhysicsBody::createPolygon(PBox, 4, material);
+	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
+	//auto material = PhysicsMaterial();
+	//material.restitution = 0.0;
+	auto body = PhysicsBody::createPolygon(PBox, 4);
 	body->setRotationEnable(false);
 	body->setVelocityLimit(30.0);
 	body->setCategoryBitmask(static_cast<int>(Stage::TileType::PLAYER));

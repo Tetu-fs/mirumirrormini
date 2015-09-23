@@ -78,12 +78,6 @@
     <Image Include="..\Resources\graphics\mapchip_00.png">
       <Filter>resource</Filter>
     </Image>
-    <Image Include="..\Resources\graphics\mapchip_02.png">
-      <Filter>resource</Filter>
-    </Image>
-    <Image Include="..\Resources\graphics\mapchip_03.png">
-      <Filter>resource</Filter>
-    </Image>
     <Image Include="..\Resources\graphics\sky.png">
       <Filter>resource</Filter>
     </Image>
@@ -93,10 +87,30 @@
     <Image Include="..\Resources\graphics\white.png">
       <Filter>resource</Filter>
     </Image>
+    <Image Include="..\Resources\graphics\ESC.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\Retry.png">
+      <Filter>resource</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Resources\graphics\ground2.tmx">
       <Filter>resource</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="..\Resources\sounds\main_bgm.wav">
+      <Filter>resource</Filter>
+    </Media>
+    <Media Include="..\Resources\sounds\se_clear.wav">
+      <Filter>resource</Filter>
+    </Media>
+    <Media Include="..\Resources\sounds\se_mirror.wav">
+      <Filter>resource</Filter>
+    </Media>
+    <Media Include="..\Resources\sounds\se_walk.wav">
+      <Filter>resource</Filter>
+    </Media>
   </ItemGroup>
 </Project>

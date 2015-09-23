@@ -83,6 +83,10 @@ protected:
 	//Blocksクラスの変数_blockGen　ブロックの生成メソッドを代入
 	Blocks* _blockGen;
 
+
+	//　void型の長い名前の関数の宣言
+	void onEnterTransitionDidFinish() override;
+
 public:
 
 	enum TileType
