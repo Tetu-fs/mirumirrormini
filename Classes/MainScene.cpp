@@ -15,7 +15,7 @@ MainScene::~MainScene()
 	CC_SAFE_RELEASE_NULL(_stage);
 }
 
-Scene* MainScene::createScene()
+Scene* MainScene::createSceneWithLevel(int level)
 {
 	auto scene = Scene::createWithPhysics();
 
@@ -25,27 +25,34 @@ Scene* MainScene::createScene()
 
 #if COCOS2D_DEBUG > 0
 	
-	//world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
 #endif
 
 	world->setSpeed(4.0);
 
-	auto layer = MainScene::create();
-
-	scene->addChild(layer);
+	auto layer = new MainScene();
+	if (layer && layer->initWithLevel(level))
+	{
+		layer->autorelease();
+	}
+	else
+	{
+		CC_SAFE_DELETE(layer);
+	}
+		scene->addChild(layer);
 
 	return scene;
 }
 
 
-bool MainScene::init()
+bool MainScene::initWithLevel(int level)
 {
 	if (!Layer::init())
 	{
 		return false;
 	}
-	auto stage = Stage::create();
+	auto stage = Stage::createWithLevel(level);
 	this->setStage(stage);
 	this->addChild(stage);
 

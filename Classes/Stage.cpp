@@ -1,12 +1,16 @@
-﻿#include "MainScene.h"
-#include "Stage.h"
-#include "SimpleAudioEngine.h"
+﻿#include "Stage.h"
+#include "MainScene.h"
+#include "TitleScene.h"
 
 USING_NS_CC;
 
-const Vec2 JUMP_IMPULSE = Vec2(0, 600);
+const Vec2 JUMP_IMPULSE = Vec2(0, 275);
 const int MAPCHIP_SIZE = 16;
 const float MAP_HEIGHT = 14;
+const int MAX_LEVEL = 2;
+
+const char* STAGE_FILE = "graphics/stage%d.tmx";
+
 Stage::Stage()
 	:_player(nullptr)
 	, _tiledMap(nullptr)
@@ -20,9 +24,10 @@ Stage::Stage()
 
 	, _sideMagic(nullptr)
 	, _upDownMagic(nullptr)
-	, testX(0)
-	, testY(0)
+	, playerX(0)
+	, playerY(0)
 
+	, _level(0)
 	
 	, blockX(0)
 	, blockY(0)
@@ -46,6 +51,19 @@ Stage::~Stage()
 
 }
 
+Stage* Stage::createWithLevel(int level)
+{
+	Stage* ret = new Stage();
+	if (ret->initWithLevel(level))
+	{
+		ret->autorelease();
+
+		return ret;
+	}
+	CC_SAFE_DELETE(ret);
+	return nullptr;
+}
+
 
 
 void Stage::jumpMethod()
@@ -54,6 +72,7 @@ void Stage::jumpMethod()
 	setJumpFlag(false);
 }
 
+//プレイヤーの操作
 void Stage::playerMove()
 {
 	/*
@@ -71,13 +90,19 @@ void Stage::playerMove()
 	{
 		if (keyCode == EventKeyboard::KeyCode::KEY_R)
 		{
-			auto scene = MainScene::createScene();
-			Director::getInstance()->replaceScene(scene);
+
+			auto mainScene = MainScene::createSceneWithLevel(_level);
+			auto mainTransition = TransitionFade::create(1.0f, mainScene);
+			Director::getInstance()->replaceScene(mainTransition);
 		}
 
 		if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
 		{
-			Director::getInstance()->end();
+			CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+
+			auto titleScene = TitleScene::createScene();
+			auto titleTransition = TransitionFade::create(1.0f, titleScene);
+			Director::getInstance()->replaceScene(titleTransition);
 		}
 
 		auto flip = FlipX::create(true);
@@ -87,7 +112,6 @@ void Stage::playerMove()
 		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)
 		{
 			leftPressFlag = true;
-			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_walk.wav",true);
 			_player->rightFlag = false;
 			if (rightPressFlag == true)
 			{
@@ -97,8 +121,6 @@ void Stage::playerMove()
 		//そうではなくもし、キーが→だったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
 		{
-			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_walk.wav", true);
-
 			rightPressFlag = true;
 			_player->rightFlag = true;
 
@@ -111,7 +133,6 @@ void Stage::playerMove()
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
 		{
 			upPressFlag = true;
-			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_walk.wav");
 		}
 
 		//そうではなくもし押されたキーがスペースだったら
@@ -137,6 +158,7 @@ void Stage::playerMove()
 				{
 					for (Vec2 mirrorPosition : _mirrorAblePositions)
 					{
+						//右反射
 						if (_player->rightFlag == true)
 						{
 
@@ -150,6 +172,7 @@ void Stage::playerMove()
 								//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
 							}
 						}
+						//左反射
 						else
 						{
 							if (_standBlockPosition.x > mirrorPosition.x)
@@ -169,6 +192,7 @@ void Stage::playerMove()
 			}
 		}
 
+		//上反射
 		if (keyCode == EventKeyboard::KeyCode::KEY_W)
 		{
 			_player->upFlag = true;
@@ -209,6 +233,8 @@ void Stage::playerMove()
 				playerDiffPositions.clear();
 			}
 		}
+
+		//下反射
 		if (keyCode == EventKeyboard::KeyCode::KEY_S)
 		{
 			_player->downFlag = true;
@@ -251,6 +277,7 @@ void Stage::playerMove()
 			}
 		}
 
+		//左反射
 		if (keyCode == EventKeyboard::KeyCode::KEY_A)
 		{
 			_player->rightFlag = false;
@@ -296,6 +323,7 @@ void Stage::playerMove()
 			}
 		}
 
+		//右反射
 		if (keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
 			_player->rightFlag = true;
@@ -355,6 +383,7 @@ void Stage::playerMove()
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
 		{
+
 			rightPressFlag = false;
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
@@ -362,14 +391,11 @@ void Stage::playerMove()
 			upPressFlag = false;
 		}
 
-		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
+		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE || keyCode == EventKeyboard::KeyCode::KEY_A || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
 			_player->magicFlag = false;
 		}
-		if (keyCode == EventKeyboard::KeyCode::KEY_A || keyCode == EventKeyboard::KeyCode::KEY_D)
-		{
-			_player->magicFlag = false;
-		}
+
 		if (keyCode == EventKeyboard::KeyCode::KEY_W)
 		{
 			_player->magicFlag = false;
@@ -388,8 +414,7 @@ void Stage::playerMove()
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(keyboardListener, this);
 }
 
-
-
+//ブロックの生成メソッド
 Blocks* Stage::BlockGen(int gid)
 {
 	Blocks* blockGen = Blocks::create();
@@ -401,26 +426,16 @@ Blocks* Stage::BlockGen(int gid)
 	material.restitution = 0.0;
 
 	//剛体設置
-	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9){
+	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9 || gid == 12 || gid == 13){
 	auto category = 1;
 	Point box[4]{Point(-8, -8), Point(-8, 8), Point(8, 8), Point(8, -8)};
-	auto physicsBody = PhysicsBody::createEdgePolygon(box,4, material);
+	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material);
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
 	physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
 	physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
 	blockGen->setPhysicsBody(physicsBody);
-	}
-	if (gid == 10)
-	{
-		Point goal[4]{Point(-4, -8), Point(-4, -8), Point(4, -7), Point(4, -7)};
-		auto goalPhysics = PhysicsBody::createEdgePolygon(goal, 4, material);
-		goalPhysics->setDynamic(false);
-		goalPhysics->setCategoryBitmask(2);
-		goalPhysics->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
-		goalPhysics->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
-
-		blockGen->setPhysicsBody(goalPhysics);
+	_allBlocks.pushBack(blockGen);
 	}
 	auto tileSize = Size(5, 4);
 	const int X_MAX = tileSize.width;
@@ -435,20 +450,22 @@ Blocks* Stage::BlockGen(int gid)
 
 	return blockGen;
 }
+
+//ステージ座標をマップ座標に変換
 Vec2 Stage::BlockVecConvert(Vec2 blockAncorVecs)
 {
 	Vec2 Position = blockAncorVecs;
 	float x = floor((Position.x) / MAPCHIP_SIZE);
 	float y = MAP_HEIGHT - floor((Position.y) / MAPCHIP_SIZE) - 1;
-	//log("%f", Position.x);
 	return  Vec2(x, y);
 }
+
+//マップ座標をステージ座標に変換
 Vec2 Stage::StageVecConvert(Vec2 blockAncorVecs)
 {
 	Vec2 Position = blockAncorVecs;
 	float x = floor((Position.x) * MAPCHIP_SIZE) + MAPCHIP_SIZE / 2;
 	float y = MAP_HEIGHT * MAPCHIP_SIZE - floor((Position.y + 1)* MAPCHIP_SIZE) + MAPCHIP_SIZE / 2;
-	//log("%f", Position.x);
 	return  Vec2(x, y);
 }
 float Stage::StageVecConvertX(float blockAncorVecs)
@@ -460,14 +477,11 @@ float Stage::StageVecConvertX(float blockAncorVecs)
 float Stage::StageVecConvertY(float blockAncorVecs)
 {
 	float Position = blockAncorVecs;
-	//Positionが9のとき
-	//14 * 16 = 244
-	//(9 + 1) * 16 + 8 = 168
-	//244 - 168 = 76
 	float y = MAP_HEIGHT * MAPCHIP_SIZE - floor((Position + 1)* MAPCHIP_SIZE) + MAPCHIP_SIZE / 2;
-	//log("check = %f", floor((Position + 1)* MAPCHIP_SIZE) + MAPCHIP_SIZE / 2);
 	return  y;
 }
+
+//BGM再生とロード
 void Stage::onEnterTransitionDidFinish()
 {
 	Layer::onEnterTransitionDidFinish();
@@ -481,6 +495,7 @@ void Stage::onEnterTransitionDidFinish()
 	this->scheduleUpdate();
 }
 
+//メイン
 void Stage::update(float dt)
 {
 	//Vec2型の_velocityという変数を整数値に直す？
@@ -495,36 +510,37 @@ void Stage::update(float dt)
 	Size winSize = Director::getInstance()->getWinSize();
 
 
-		if (_playerPosition.x >= winSize.width)
-		{
-			_player->setPositionX(winSize.width);
-			_velocity.x = 0;
-		}
+	if (_playerPosition.x >= winSize.width)
+	{
+		_player->setPositionX(winSize.width);
+		_velocity.x = 0;
+	}
 
-		else if (_playerPosition.x <= 0)
-		{
-			_player->setPositionX(0);
-			_velocity.x = 0;
-		}
+	else if (_playerPosition.x <= 0)
+	{
+		_player->setPositionX(0);
+		_velocity.x = 0;
+	}
 
-		if (_playerPosition.y >= winSize.height)
-		{
-			_player->setPositionY(winSize.height);
-			_velocity.y = 0;
-		}
+	if (_playerPosition.y >= winSize.height)
+	{
+		_player->setPositionY(winSize.height);
+		_velocity.y = 0;
+	}
 
-		else if (_playerPosition.y <= 0)
-		{
-			_player->setPositionY(0);
-			_velocity.y = 0;
-		}
+	else if (_playerPosition.y <= 0)
+	{
+		_player->setPositionY(0);
+		_velocity.y = 0;
+	}
 
-		auto flip = FlipX::create(true);
-		auto flipback = FlipX::create(false);
-		if (_state == GameState::PLAYING)
-		{
+	auto flip = FlipX::create(true);
+	auto flipback = FlipX::create(false);
+	if (_state == GameState::PLAYING)
+	{
 		if (leftPressFlag == true)
 		{
+
 			if (getJumpFlag() == true)
 			{
 				_player->playAnimation(1);
@@ -535,7 +551,9 @@ void Stage::update(float dt)
 
 		if (rightPressFlag == true)
 		{
-			if (getJumpFlag() == true)		{
+
+			if (getJumpFlag() == true)
+			{
 				_player->playAnimation(1);
 			}
 			_player->runAction(flipback);
@@ -577,6 +595,69 @@ void Stage::update(float dt)
 			}
 		}
 
+
+		if (_player->stopR == true)
+		{
+			if (_velocity.x >= 0)
+			{
+				_velocity.x = 0;
+			}
+			else
+			{
+				_player->stopR = false;
+			}
+		}
+		if (_player->stopL == true)
+		{
+			if (_velocity.x <= 0)
+			{
+				_velocity.x = 0;
+			}
+			else
+			{
+				_player->stopL = false;
+			}
+		}
+
+		for (Vec2 point : _neighborBlockPositions)
+		{
+			Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
+			if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
+			{
+				_standBlockPosition = BlockVecConvert(point);
+
+				if (_player->rightFlag == true)
+				{
+
+					_player->LRMagicPosition = Vec2(blockRect.getMaxX(), -224);
+				}
+				else
+				{
+					_player->LRMagicPosition = Vec2(blockRect.getMinX(), -224);
+				}
+
+				if (_player->upFlag == true)
+				{
+
+					_player->UDMagicPosition = Vec2(-384, blockRect.getMinY());
+				}
+				else
+				{
+					_player->UDMagicPosition = Vec2(-384, blockRect.getMaxY());
+				}
+			}
+		}
+
+		if (Vec2(_standBlockPosition.x, _standBlockPosition.y - 1) == goalVec)
+		{
+			goalFlag = true;
+		}
+		else
+		{
+			goalFlag = false;
+		}
+
+
 		if (goalFlag == true)
 		{
 			if (_playerPosition.y == _prevPosition.y)
@@ -593,13 +674,32 @@ void Stage::update(float dt)
 
 		}
 
+		playerX = BlockVecConvert(_player->getPosition()).x;
+		playerY = BlockVecConvert(_player->getPosition()).y;
+		playerMapVec = Vec2(playerX, playerY);
 		if (getJumpFlag() == false)
 		{
-
 			if (_playerPosition.y > _prevPosition.y)
 			{
 				_player->playAnimation(2);
+				for (Blocks* block : _allBlocks)
+				{
+
+					if (playerMapVec.x == BlockVecConvert(block->getPosition()).x)
+					{
+						if (playerMapVec.y - 1 == BlockVecConvert(block->getPosition()).y || playerMapVec.y == BlockVecConvert(block->getPosition()).y)
+						{
+							block->getPhysicsBody()->setCategoryBitmask(0);
+						}
+						else if (block->getPhysicsBody()->getCategoryBitmask() == 0)
+						{
+							block->getPhysicsBody()->setCategoryBitmask(1);
+						}
+					}
+
+				}
 			}
+
 			else if (_playerPosition.y < _prevPosition.y)
 			{
 				_player->playAnimation(3);
@@ -618,51 +718,18 @@ void Stage::update(float dt)
 	{
 		_velocity.x = 0;
 
-		_player->playAnimation(7); 
+		_player->playAnimation(7);
+
 	}
-
-
-	for (Vec2 point : _neighborBlockPositions)
-	{
-		Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
-		if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
-		{
-			_standBlockPosition = BlockVecConvert(point);
-			//log("BlockVec = %f", _standBlockPosition.x);
-			//testVec = Vec2(point);
-			//testBlock->setPosition(testVec);
-			if (_player->rightFlag == true)
-			{
-
-				_player->LRMagicPosition = Vec2(blockRect.getMaxX(), -224);
-			}
-			else
-			{
-				_player->LRMagicPosition = Vec2(blockRect.getMinX(), -224);
-			}
-
-			if (_player->upFlag == true)
-			{
-
-				_player->UDMagicPosition = Vec2(-384, blockRect.getMinY());
-			}
-			else
-			{
-
-				_player->UDMagicPosition = Vec2(-384,blockRect.getMaxY());
-			}
-		}
-	}
-
 }
-bool Stage::init()
+bool Stage::initWithLevel(int level)
 {
 	if (!Layer::init())
 	{
 		return false;
 	}
-	//auto backGroundLayer = Stage::create();
-
+	//現ステージ数を格納
+	_level = level;
 
 	//剛体の接触チェック
 	auto contactListener = EventListenerPhysicsContact::create();
@@ -673,50 +740,56 @@ bool Stage::init()
 		PhysicsShape* ground = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
 		Node* groundNode = ground->getBody()->getNode();
 		nowBlockPosition = groundNode->getPosition();
-		Vec2 worldPos = groundNode->getParent()->convertToWorldSpace(groundNode->getPosition());
 		//log("%f", worldPos.x);
 		_neighborBlockPositions.push_back(nowBlockPosition);
+
+		auto nowBlockVec = BlockVecConvert(nowBlockPosition);
 
 		//カテゴリ抽出
 		int category = groundNode->getPhysicsBody()->getCategoryBitmask();
 
 		Rect groundRect = groundNode->getBoundingBox();
-		float groundTopY = groundRect.origin.y + groundRect.size.height;
+		float groundTopY = groundRect.getMaxY();
 
 		float minX = groundRect.origin.x;
-		float midX = (groundRect.origin.x + groundRect.size.width / 2);
-		float maxX = groundRect.origin.x + groundRect.size.width - 1.0;
+		float maxX = groundRect.getMaxX() ;
+	
 		Rect playerRect = _player->getBoundingBox();
 		float playerBottomY = playerRect.origin.y;
-		float playerX = _player->getPosition().x;
-
-		bool isContains = minX <= playerX && playerX <= maxX;
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-
 
 			if (groundTopY <= playerBottomY)
 			{
 				setJumpFlag(true);
 			}
-
+			else
+			{
+				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
+				{
+					
+					_player->stopL = true;
+				}
+				else if (minX <= playerRect.getMaxX() && nowBlockPosition.x > _player->getPositionX())
+				{
+					_player->stopR = true;
+				}
+			}
 		}
 
-		if (category & static_cast<int>(Stage::TileType::GOAL))
-		{
-			goalFlag = true;
-		}
-		else
-		{
-			goalFlag = false;
-		}
 		return true;
 	};
 	contactListener->onContactSeperate = [this](PhysicsContact&contact){
-		_neighborBlockPositions.erase(_neighborBlockPositions.begin());
-		//log("std::_neighborBlockPositions.size = %d", _neighborBlockPositions.size());
-
+		if (_neighborBlockPositions.size() > 0)
+		{
+			_neighborBlockPositions.erase(_neighborBlockPositions.begin());
+		}
+		if (_neighborBlockPositions.size() == 0)
+		{
+			_player->stopL = false;
+			_player->stopR = false;
+		}
 	};
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
 
@@ -758,8 +831,9 @@ bool Stage::init()
 	//背景雲
 	this->addChild(background2);
 	
-	//乗れる部分
-	auto map = TMXTiledMap::create("graphics/ground2.tmx");
+	//乗れる部分 
+	auto stageFile = StringUtils::format(STAGE_FILE, level);
+	auto map = TMXTiledMap::create(stageFile);
 
 	//レイヤー抽出
 	TMXLayer* layer = map->getLayer("ground");
@@ -787,6 +861,10 @@ bool Stage::init()
 					_blockGen->setLocalZOrder(5);
 					_mirrorAbleBlocks.push_back(_blockGen);
 				}
+				if (tileID == 10)
+				{
+					goalVec = BlockVecConvert(_blockGen->getPosition());
+				}
 
 				tileMap->removeFromParent();
 			}			
@@ -797,34 +875,26 @@ bool Stage::init()
 	auto luk = Player::create();
 	this->setPlayer(luk);
 	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-	_player->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 
 	luk->setPosition(Vec2(64, 92));
 	luk->getTexture()->setAliasTexParameters();
 	luk->setLocalZOrder(10);
+	_player->playAnimation(0);
 	this->addChild(luk);
 	_prevPosition = luk->getPosition();
 
 	playerMove(); 
-	/*
-	testBlock = Sprite::create("graphics/white.png");
-	testBlock->setScale((float)MAPCHIP_SIZE);
-	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-	this->addChild(testBlock);
-	*/
 
-	auto esc = Sprite::create("graphics/ESC.png");
-	esc->setPosition(Vec2(0,210));
-	esc->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
-	esc->getTexture()->setAliasTexParameters();
-	this->addChild(esc);
-
-	auto Retry = Sprite::create("graphics/Retry.png");
-	Retry->setPosition(Vec2(120, 210));
-	Retry->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
-	Retry->getTexture()->setAliasTexParameters();
-	this->addChild(Retry);
-
+	Sprite* guide = Sprite::create("graphics/mainguide.png");
+	guide->setPosition(Vec2(5, 210));
+	guide->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
+	guide->getTexture()->setAliasTexParameters();
+	this->addChild(guide);
+	if (_state == GameState::RESULT && level <= MAX_LEVEL)
+	{
+		log("check");
+		level++;
+	}
 	this->scheduleUpdate();
 
 	return true;

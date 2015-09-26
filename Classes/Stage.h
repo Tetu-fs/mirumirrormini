@@ -1,10 +1,14 @@
 #ifndef __STAGE_H__
 #define __STAGE_H__
+
 #include "vector"
 #include "math\CCMath.h"
 #include "cocos2d.h"
+
 #include "Player.h"
 #include "Blocks.h"
+
+#include "SimpleAudioEngine.h"
 class Stage : public cocos2d::Layer
 {
 
@@ -12,7 +16,8 @@ protected:
 
 	Stage();
 	virtual ~Stage() override;
-	bool init() override;
+	//bool init() override;
+	bool initWithLevel(int level);
 
 	bool leftPressFlag;
 	bool rightPressFlag;
@@ -23,8 +28,8 @@ protected:
 
 	void playerMove();
 	void jumpMethod();
-	float testX;
-	float testY;
+	float playerX;
+	float playerY;
 	
 	//BlockGen
 	int blockX;
@@ -43,8 +48,13 @@ protected:
 	};
 
 
+	cocos2d::Vector<Blocks*> _allBlocks;
+
 	//現在たっているブロック用のガイド
 	cocos2d::Vec2 testVec;
+
+	//ゴールの場所
+	cocos2d::Vec2 goalVec;
 
 	//プレイヤーの移動
 	cocos2d::Vec2 _velocity;
@@ -53,6 +63,10 @@ protected:
 
 	//プレイヤーの現在の座標
 	cocos2d::Vec2 _playerPosition;
+
+	//現在たっているブロック用のガイド
+	cocos2d::Vec2 playerMapVec;
+
 
 	//現在接触しているブロックの座標
 	cocos2d::Vec2 nowBlockPosition;
@@ -64,6 +78,7 @@ protected:
 
 	//反射ブロックを格納する配列
 	std::vector<Blocks*> _mirrorAbleBlocks;
+
 
 	//反射ブロックのマップ座標を格納する配列
 	std::vector<cocos2d::Vec2> _mirrorAblePositions;
@@ -106,6 +121,8 @@ public:
 
 	CC_SYNTHESIZE(bool, _jumpFlag, JumpFlag);
 
+	CC_SYNTHESIZE_READONLY(int, _level, Level);
+
 	CC_SYNTHESIZE_RETAIN(Magic*, _sideMagic, SideMagic);
 	CC_SYNTHESIZE_RETAIN(Magic*, _upDownMagic, UpDownMagic);
 
@@ -113,8 +130,7 @@ public:
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CC_SYNTHESIZE_RETAIN(Blocks*, _blocks, Blocks);
 	CC_SYNTHESIZE(GameState, _state, State);
-	CREATE_FUNC(Stage);
-
+	static Stage* createWithLevel(int level);
 
 private:
 	//cocos2d::Sprite* addPhysicsBody(cocos2d::TMXLayer*layer, cocos2d::Vec2&coodinate);

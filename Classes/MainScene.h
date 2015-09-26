@@ -5,23 +5,23 @@
 #include "Stage.h"
 class MainScene : public cocos2d::Layer
 {
-
 protected:
 	
-	bool init() override;
+	//bool init() override;
+	bool initWithLevel(int level);
 
 	MainScene::MainScene();
-
 	virtual ~MainScene() override;
 
 
 public:
 
-	static cocos2d::Scene* createScene();
+	//static cocos2d::Scene* createScene();
 
 	CC_SYNTHESIZE_RETAIN(Stage*, _stage, Stage);
 
-	CREATE_FUNC(MainScene);
+	static cocos2d::Scene* createSceneWithLevel(int level);
+
 
 };
 
