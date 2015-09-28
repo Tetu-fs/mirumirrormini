@@ -33,6 +33,12 @@
     <ClCompile Include="..\Classes\Blocks.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\TitleScene.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Classes\AudioManager.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -56,6 +62,12 @@
     <ClInclude Include="..\Classes\Blocks.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\Classes\TitleScene.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\AudioManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="game.rc">
@@ -66,13 +78,7 @@
     <Image Include="..\Resources\graphics\cloud.png">
       <Filter>resource</Filter>
     </Image>
-    <Image Include="..\Resources\graphics\explosion_animate.png">
-      <Filter>resource</Filter>
-    </Image>
     <Image Include="..\Resources\graphics\game.ico">
-      <Filter>resource</Filter>
-    </Image>
-    <Image Include="..\Resources\graphics\kawaz_shooting.png">
       <Filter>resource</Filter>
     </Image>
     <Image Include="..\Resources\graphics\mapchip_00.png">
@@ -87,29 +93,41 @@
     <Image Include="..\Resources\graphics\white.png">
       <Filter>resource</Filter>
     </Image>
-    <Image Include="..\Resources\graphics\ESC.png">
-      <Filter>resource</Filter>
-    </Image>
-    <Image Include="..\Resources\graphics\Retry.png">
+    <Image Include="..\Resources\graphics\mmm_logo.png">
       <Filter>resource</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Resources\graphics\ground2.tmx">
+    <None Include="..\Resources\graphics\stage1.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage2.tmx">
       <Filter>resource</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Media Include="..\Resources\sounds\main_bgm.wav">
+    <Media Include="..\Resources\sounds\title_bgm.wav">
       <Filter>resource</Filter>
     </Media>
-    <Media Include="..\Resources\sounds\se_clear.wav">
+    <Media Include="..\Resources\sounds\main_bgm.mp3">
       <Filter>resource</Filter>
     </Media>
-    <Media Include="..\Resources\sounds\se_mirror.wav">
+    <Media Include="..\Resources\sounds\se_cancel.mp3">
       <Filter>resource</Filter>
     </Media>
-    <Media Include="..\Resources\sounds\se_walk.wav">
+    <Media Include="..\Resources\sounds\se_clear.mp3">
+      <Filter>resource</Filter>
+    </Media>
+    <Media Include="..\Resources\sounds\se_mirror.mp3">
+      <Filter>resource</Filter>
+    </Media>
+    <Media Include="..\Resources\sounds\se_ok.mp3">
+      <Filter>resource</Filter>
+    </Media>
+    <Media Include="..\Resources\sounds\se_pause.mp3">
+      <Filter>resource</Filter>
+    </Media>
+    <Media Include="..\Resources\sounds\title_bgm.mp3">
       <Filter>resource</Filter>
     </Media>
   </ItemGroup>

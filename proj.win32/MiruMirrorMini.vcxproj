@@ -140,20 +140,24 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y</Command>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
+    <ClCompile Include="..\Classes\AudioManager.cpp" />
     <ClCompile Include="..\Classes\Blocks.cpp" />
     <ClCompile Include="..\Classes\Magic.cpp" />
     <ClCompile Include="..\Classes\MainScene.cpp" />
     <ClCompile Include="..\Classes\Player.cpp" />
     <ClCompile Include="..\Classes\Stage.cpp" />
+    <ClCompile Include="..\Classes\TitleScene.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Classes\AppDelegate.h" />
+    <ClInclude Include="..\Classes\AudioManager.h" />
     <ClInclude Include="..\Classes\Blocks.h" />
     <ClInclude Include="..\Classes\Magic.h" />
     <ClInclude Include="..\Classes\MainScene.h" />
     <ClInclude Include="..\Classes\Player.h" />
     <ClInclude Include="..\Classes\Stage.h" />
+    <ClInclude Include="..\Classes\TitleScene.h" />
     <ClInclude Include="main.h" />
   </ItemGroup>
   <ItemGroup>
@@ -173,26 +177,26 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y</Command>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\Resources\graphics\cloud.png" />
-    <Image Include="..\Resources\graphics\ESC.png" />
-    <Image Include="..\Resources\graphics\explosion_animate.png" />
     <Image Include="..\Resources\graphics\game.ico" />
-    <Image Include="..\Resources\graphics\kawaz_shooting.png" />
     <Image Include="..\Resources\graphics\luk_sprite.png" />
     <Image Include="..\Resources\graphics\mapchip_00.png" />
-    <Image Include="..\Resources\graphics\Retry.png" />
+    <Image Include="..\Resources\graphics\mmm_logo.png" />
     <Image Include="..\Resources\graphics\sky.png" />
     <Image Include="..\Resources\graphics\white.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Resources\graphics\ground2.tmx">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="..\Resources\graphics\stage1.tmx" />
+    <None Include="..\Resources\graphics\stage2.tmx" />
   </ItemGroup>
   <ItemGroup>
-    <Media Include="..\Resources\sounds\main_bgm.wav" />
-    <Media Include="..\Resources\sounds\se_clear.wav" />
-    <Media Include="..\Resources\sounds\se_mirror.wav" />
-    <Media Include="..\Resources\sounds\se_walk.wav" />
+    <Media Include="..\Resources\sounds\main_bgm.mp3" />
+    <Media Include="..\Resources\sounds\se_cancel.mp3" />
+    <Media Include="..\Resources\sounds\se_clear.mp3" />
+    <Media Include="..\Resources\sounds\se_mirror.mp3" />
+    <Media Include="..\Resources\sounds\se_ok.mp3" />
+    <Media Include="..\Resources\sounds\se_pause.mp3" />
+    <Media Include="..\Resources\sounds\title_bgm.mp3" />
+    <Media Include="..\Resources\sounds\title_bgm.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
