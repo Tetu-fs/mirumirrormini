@@ -1,5 +1,4 @@
 #include "MainScene.h"
-
 USING_NS_CC;
 
 const Vec2 GRAVITY_ACCELERATION = Vec2(0, -18);
@@ -25,7 +24,7 @@ Scene* MainScene::createSceneWithLevel(int level)
 
 #if COCOS2D_DEBUG > 0
 	
-	world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
+	//world->setDebugDrawMask(PhysicsWorld::DEBUGDRAW_ALL);
 
 #endif
 
@@ -52,6 +51,7 @@ bool MainScene::initWithLevel(int level)
 	{
 		return false;
 	}
+
 	auto stage = Stage::createWithLevel(level);
 	this->setStage(stage);
 	this->addChild(stage);
@@ -73,8 +73,6 @@ bool MainScene::initWithLevel(int level)
 	//Õ“Ë‚ð—LŒø‚É
 	player->setCollisionBitmask(PhysicsCategoryBlocks);
 	player->setContactTestBitmask(PhysicsCategoryBlocks);
-
-
 
 	return true;
 

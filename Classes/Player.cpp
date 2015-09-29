@@ -24,10 +24,11 @@ bool Player::init()
 	}
 
 
-	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
-	//auto material = PhysicsMaterial();
-	//material.restitution = 0.0;
-	auto body = PhysicsBody::createPolygon(PBox, 4);
+	Point PBox[8]{Point(-3, -12), Point(-4, -10), Point(-4, -2), Point(-3, 0), Point(3, 0), Point(4, -2), Point(4, -10), Point(3, -12)};
+	auto body = PhysicsBody::createPolygon(PBox, 8);
+	// body = PhysicsBody::createEdgePolygon(PBox, 4,PHYSICSBODY_MATERIAL_DEFAULT,0.5f);
+	body->setEnable(true);
+	body->setDynamic(true);
 	body->setRotationEnable(false);
 	body->setVelocityLimit(30.0);
 	body->setCategoryBitmask(static_cast<int>(Stage::TileType::PLAYER));
@@ -37,6 +38,7 @@ bool Player::init()
 	body->setContactTestBitmask(INT_MAX);
 
 	this->setPhysicsBody(body);
+
 	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	this->scheduleUpdate();
 	return true;
@@ -48,10 +50,10 @@ Magic* Player::upDownMirrorEffect()
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteUpScale = 244 * 2;
-	float whiteDownScale = -244 * 2;
+	float whiteUpScale = 244;
+	float whiteDownScale = -244;
 
-	magic->setScaleX((16 * 24) * 3);
+	magic->setScaleX(16 * 24);
 
 	if (upFlag == true)
 	{
@@ -71,10 +73,10 @@ Magic* Player::sideMirrorEffect()
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteRightScale = 384 * 2;
-	float whiteLeftScale = -384 * 2;
+	float whiteRightScale = 384;
+	float whiteLeftScale = -384;
 
-	magic->setScaleY((16 * 14) * 3);
+	magic->setScaleY(16 * 14);
 
 	if (rightFlag == true)
 	{

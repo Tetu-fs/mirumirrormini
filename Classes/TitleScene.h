@@ -5,8 +5,7 @@
 #define __MyGame___TitleScene__
 
 #include "cocos2d.h"
-
-#include "SimpleAudioEngine.h"
+#include "AudioEngine.h"
 
 class TitleScene :public cocos2d::Layer
 {
@@ -21,7 +20,7 @@ public:
 	static cocos2d::Scene* createScene();
 	cocos2d::Sprite* Start;
 	cocos2d::Sprite* logo;
-
+	int titleBGM;
 	void gameStart();
 
 	CREATE_FUNC(TitleScene);

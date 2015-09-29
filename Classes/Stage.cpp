@@ -1,26 +1,31 @@
 ﻿#include "Stage.h"
 #include "MainScene.h"
 #include "TitleScene.h"
+#include"AudioManager.h"
 
 USING_NS_CC;
+//using namespace experimental;
 
-const Vec2 JUMP_IMPULSE = Vec2(0, 275);
+const Vec2 JUMP_IMPULSE = Vec2(0, 260);
 const int MAPCHIP_SIZE = 16;
 const float MAP_HEIGHT = 14;
-const int MAX_LEVEL = 2;
+const int MAX_LEVEL = 4;
 
 const char* STAGE_FILE = "graphics/stage%d.tmx";
 
 Stage::Stage()
-	:_player(nullptr)
+	: _player(nullptr)
 	, _tiledMap(nullptr)
 	, _blocks(nullptr)
-	, _state(GameState::PLAYING)
 	, leftPressFlag(false)
 	, rightPressFlag(false)
 	, upPressFlag(false)
 	, _jumpFlag(false)
 	, goalFlag(false)
+	, magicUse(true)
+	, moveFlag(false)
+	
+	, _state(GameState::PLAYING)
 
 	, _sideMagic(nullptr)
 	, _upDownMagic(nullptr)
@@ -28,7 +33,8 @@ Stage::Stage()
 	, playerY(0)
 
 	, _level(0)
-	
+	, _mainBgmID(-1)
+
 	, blockX(0)
 	, blockY(0)
 	, mapX(0)
@@ -36,6 +42,9 @@ Stage::Stage()
 	, tileID(0)
 	, rectX(0)
 	, rectY(0)
+	, nextLevel(0)
+	, timeCount(0)
+	, mainBgmID(-1)
 {
 
 }
@@ -88,9 +97,9 @@ void Stage::playerMove()
 	//キーボードが押された時のstopを書く関数？
 	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
 	{
+
 		if (keyCode == EventKeyboard::KeyCode::KEY_R)
 		{
-
 			auto mainScene = MainScene::createSceneWithLevel(_level);
 			auto mainTransition = TransitionFade::create(1.0f, mainScene);
 			Director::getInstance()->replaceScene(mainTransition);
@@ -98,7 +107,7 @@ void Stage::playerMove()
 
 		if (keyCode == EventKeyboard::KeyCode::KEY_ESCAPE)
 		{
-			CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+			experimental::AudioEngine::stop(mainBgmID);
 
 			auto titleScene = TitleScene::createScene();
 			auto titleTransition = TransitionFade::create(1.0f, titleScene);
@@ -108,269 +117,311 @@ void Stage::playerMove()
 		auto flip = FlipX::create(true);
 		auto flipback = FlipX::create(false);
 
-		//もし押されたキーが←だったら
-		if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)
-		{
-			leftPressFlag = true;
-			_player->rightFlag = false;
-			if (rightPressFlag == true)
-			{
-				rightPressFlag = false;
-			}
-		}
-		//そうではなくもし、キーが→だったら
-		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
-		{
-			rightPressFlag = true;
-			_player->rightFlag = true;
 
-			if (leftPressFlag == true)
-			{
-				leftPressFlag = false;
-			}
-		}
-		//もし押されたキーが↑だったら
-		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
-		{
-			upPressFlag = true;
-		}
-
-		//そうではなくもし押されたキーがスペースだったら
+		//もし押されたキーがスペースだったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
 		{
-			if (getJumpFlag() == true)
+			if (_state == GameState::PLAYING)
 			{
-				_player->magicFlag = true;
-				Magic* sideMagic = _player->sideMirrorEffect();
-				this->setSideMagic(sideMagic);
-				_sideMagic->setPosition(_player->LRMagicPosition);
-				this->addChild(_sideMagic);
-			}
-
-			for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-			{
-				_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
-
-				std::vector<float> playerDiffPositions;
-				float diffPosition;
-				if (_player->magicFlag == true)
+				//log("%d", magicUse);
+				if (magicUse == true && moveFlag == false)
 				{
-					for (Vec2 mirrorPosition : _mirrorAblePositions)
+					if (getJumpFlag() == true)
 					{
-						//右反射
-						if (_player->rightFlag == true)
-						{
-
-							if (_standBlockPosition.x < mirrorPosition.x)
-							{
-								diffPosition = mirrorPosition.x - _standBlockPosition.x;
-								playerDiffPositions.push_back(diffPosition);
-								float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
-								MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
-								mirrorBlock->runAction(rightMoveAction);
-								//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
-							}
-						}
-						//左反射
-						else
-						{
-							if (_standBlockPosition.x > mirrorPosition.x)
-							{
-								diffPosition = _standBlockPosition.x - mirrorPosition.x;
-								playerDiffPositions.push_back(diffPosition);
-								float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
-								MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
-								mirrorBlock->runAction(leftMoveAction);
-								//log("Lcount = %f", diffPosition);
-							}
-						}
-					}
-				}
-				_mirrorAblePositions.clear();
-				playerDiffPositions.clear();
-			}
-		}
-
-		//上反射
-		if (keyCode == EventKeyboard::KeyCode::KEY_W)
-		{
-			_player->upFlag = true;
-			if (_player->downFlag == true){ _player->downFlag = false; }
-			if (getJumpFlag() == true)
-			{
-				_player->magicFlag = true;
-				Magic* upMagic = _player->upDownMirrorEffect();
-				this->setUpDownMagic(upMagic);
-				_upDownMagic->setPosition(_player->UDMagicPosition);
-				this->addChild(_upDownMagic);
-			}
-
-			for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-			{
-				_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
-
-				std::vector<float> playerDiffPositions;
-				float diffPosition;
-				if (_player->magicFlag == true)
-				{
-					for (Vec2 mirrorPosition : _mirrorAblePositions)
-					{
-							if (_standBlockPosition.y > mirrorPosition.y)
-							{
-								diffPosition = _standBlockPosition.y - mirrorPosition.y;
-								//playerDiffPositions.push_back(diffPosition);
-								float upMirrorMove = StageVecConvertY(_standBlockPosition.y + diffPosition);
-								MoveTo* upMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, upMirrorMove));
-								mirrorBlock->runAction(upMoveAction);
-								//log("Rcount = %f", upMirrorMove);
-							}
-						}
-
-				}
-				_mirrorAblePositions.clear();
-				playerDiffPositions.clear();
-			}
-		}
-
-		//下反射
-		if (keyCode == EventKeyboard::KeyCode::KEY_S)
-		{
-			_player->downFlag = true;
-			if (_player->upFlag == true){ _player->upFlag = false; }
-
-			if (getJumpFlag() == true)
-			{
-				_player->magicFlag = true;
-				Magic* upMagic = _player->upDownMirrorEffect();
-				this->setUpDownMagic(upMagic);
-				_upDownMagic->setPosition(_player->UDMagicPosition);
-				this->addChild(_upDownMagic);
-			}
-
-			for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-			{
-				_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
-
-				std::vector<float> playerDiffPositions;
-				float diffPosition;
-				if (_player->magicFlag == true)
-				{
-					for (Vec2 mirrorPosition : _mirrorAblePositions)
-					{
-						if (_standBlockPosition.y < mirrorPosition.y)
-						{
-							diffPosition = mirrorPosition.y - _standBlockPosition.y;
-							playerDiffPositions.push_back(diffPosition);
-							float downMirrorMove = StageVecConvertY(_standBlockPosition.y - diffPosition);
-							MoveTo* downMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, downMirrorMove));
-							mirrorBlock->runAction(downMoveAction);
-							//log("Rcount = %f", downMirrorMove);
-						}
+						_player->magicFlag = true;
+						Magic* sideMagic = _player->sideMirrorEffect();
+						this->setSideMagic(sideMagic);
+						_sideMagic->setPosition(_player->LRMagicPosition);
+						this->addChild(_sideMagic);
 					}
 
-				}
-				_mirrorAblePositions.clear();
-				playerDiffPositions.clear();
-			}
-		}
-
-		//左反射
-		if (keyCode == EventKeyboard::KeyCode::KEY_A)
-		{
-			_player->rightFlag = false;
-			_player->runAction(flip);
-
-			if (getJumpFlag() == true)
-			{
-				_player->magicFlag = true;
-
-				Magic* sideMagic = _player->sideMirrorEffect();
-				this->setSideMagic(sideMagic);
-				_sideMagic->setPosition(_player->LRMagicPosition);
-				this->addChild(_sideMagic);
-			}
-
-			for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-			{
-				_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
-
-				std::vector<float> playerDiffPositions;
-				float diffPosition;
-				if (_player->magicFlag == true)
-				{
-					for (Vec2 mirrorPosition : _mirrorAblePositions)
+					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
 					{
-						if (_player->rightFlag == false)
+						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
+
+
+						std::vector<float> playerDiffPositions;
+						float diffPosition;
+						if (_player->magicFlag == true)
 						{
-							if (_standBlockPosition.x > mirrorPosition.x)
+							for (Vec2 mirrorPosition : _mirrorAblePositions)
 							{
-								diffPosition = _standBlockPosition.x - mirrorPosition.x;
-								playerDiffPositions.push_back(diffPosition);
-								float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
-								MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
-								mirrorBlock->runAction(leftMoveAction);
+								//右反射
+								if (_player->rightFlag == true)
+								{
+
+									if (_standBlockPosition.x < mirrorPosition.x)
+									{
+										diffPosition = mirrorPosition.x - _standBlockPosition.x;
+										playerDiffPositions.push_back(diffPosition);
+										float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
+										MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
+										mirrorBlock->runAction(rightMoveAction);
+										//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
+									}
+								}
+								//左反射
+								else
+								{
+									if (_standBlockPosition.x > mirrorPosition.x)
+									{
+										diffPosition = _standBlockPosition.x - mirrorPosition.x;
+										playerDiffPositions.push_back(diffPosition);
+										float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
+										MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
+										mirrorBlock->runAction(leftMoveAction);
+										//log("Lcount = %f", diffPosition);
+									}
+								}
 							}
 						}
-
+						_mirrorAblePositions.clear();
+						playerDiffPositions.clear();
 					}
 				}
-				_mirrorAblePositions.clear();
-				playerDiffPositions.clear();
+			}
+			else if (_state == GameState::RESULT)
+			{
+				if (_level < MAX_LEVEL)
+				{
+					nextLevel = _level + 1;
+					auto mainScene = MainScene::createSceneWithLevel(nextLevel);
+					auto mainTransition = TransitionFade::create(1.0f, mainScene);
+					Director::getInstance()->replaceScene(mainTransition);
+				}
+				
+				else
+				{
+					experimental::AudioEngine::stop(mainBgmID);
+					
+					auto titleScene = TitleScene::createScene();
+					auto titleTransition = TransitionFade::create(1.0f, titleScene);
+					Director::getInstance()->replaceScene(titleTransition);
+				}
 			}
 		}
 
-		//右反射
-		if (keyCode == EventKeyboard::KeyCode::KEY_D)
+		if (_state == GameState::PLAYING)
 		{
-			_player->rightFlag = true;
-			_player->runAction(flipback);
 
-			if (getJumpFlag() == true)
+			//もし押されたキーが←だったら
+			if (keyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)
 			{
-				_player->magicFlag = true;
+				leftPressFlag = true;
+				_player->rightFlag = false;
+				moveFlag = true;
 
-				Magic* sideMagic = _player->sideMirrorEffect();
-				this->setSideMagic(sideMagic);
-				_sideMagic->setPosition(_player->LRMagicPosition);
-				this->addChild(_sideMagic);
-			}
-
-			for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-			{
-				_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
-
-				std::vector<float> playerDiffPositions;
-				float diffPosition;
-				if (_player->magicFlag == true)
+				if (rightPressFlag == true)
 				{
-					for (Vec2 mirrorPosition : _mirrorAblePositions)
+					rightPressFlag = false;
+				}
+			}
+			//そうではなくもし、キーが→だったら
+			if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
+			{
+				rightPressFlag = true;
+				_player->rightFlag = true;
+				moveFlag = true;
+
+				if (leftPressFlag == true)
+				{
+					leftPressFlag = false;
+				}
+			}
+			//もし押されたキーが↑だったら
+			if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
+			{
+				upPressFlag = true;
+				moveFlag = true;
+			}
+			if (magicUse == false)
+			{
+				this->scheduleOnce([this](float dt)
+				{
+					magicUse = true;
+				}, 0.5, "key");
+			}
+			if (magicUse == true && moveFlag == false)
+			{
+				//上反射
+				if (keyCode == EventKeyboard::KeyCode::KEY_W)
+				{
+					_player->upFlag = true;
+					if (_player->downFlag == true){ _player->downFlag = false; }
+					if (getJumpFlag() == true)
 					{
-						if (_player->rightFlag == true)
+						_player->magicFlag = true;
+						Magic* upMagic = _player->upDownMirrorEffect();
+						this->setUpDownMagic(upMagic);
+						_upDownMagic->setPosition(_player->UDMagicPosition);
+						this->addChild(_upDownMagic);
+					}
+
+					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
+					{
+						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
+
+
+						std::vector<float> playerDiffPositions;
+						float diffPosition;
+						if (_player->magicFlag == true)
 						{
-							if (_standBlockPosition.x < mirrorPosition.x)
+							for (Vec2 mirrorPosition : _mirrorAblePositions)
 							{
-								diffPosition = mirrorPosition.x - _standBlockPosition.x;
-								playerDiffPositions.push_back(diffPosition);
-								float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
-								MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
-								mirrorBlock->runAction(rightMoveAction);
-								//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
+								if (_standBlockPosition.y > mirrorPosition.y)
+								{
+									diffPosition = _standBlockPosition.y - mirrorPosition.y;
+									//playerDiffPositions.push_back(diffPosition);
+									float upMirrorMove = StageVecConvertY(_standBlockPosition.y + diffPosition);
+									MoveTo* upMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, upMirrorMove));
+									mirrorBlock->runAction(upMoveAction);
+									//log("Rcount = %f", upMirrorMove);
+								}
+							}
+
+						}
+						_mirrorAblePositions.clear();
+						playerDiffPositions.clear();
+					}
+				}
+
+				//下反射
+				if (keyCode == EventKeyboard::KeyCode::KEY_S)
+				{
+					_player->downFlag = true;
+					if (_player->upFlag == true){ _player->upFlag = false; }
+
+					if (getJumpFlag() == true)
+					{
+						_player->magicFlag = true;
+						Magic* upMagic = _player->upDownMirrorEffect();
+						this->setUpDownMagic(upMagic);
+						_upDownMagic->setPosition(_player->UDMagicPosition);
+						this->addChild(_upDownMagic);
+					}
+
+					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
+					{
+						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
+
+
+						std::vector<float> playerDiffPositions;
+						float diffPosition;
+						if (_player->magicFlag == true)
+						{
+							for (Vec2 mirrorPosition : _mirrorAblePositions)
+							{
+								if (_standBlockPosition.y < mirrorPosition.y)
+								{
+									diffPosition = mirrorPosition.y - _standBlockPosition.y;
+									playerDiffPositions.push_back(diffPosition);
+									float downMirrorMove = StageVecConvertY(_standBlockPosition.y - diffPosition);
+									MoveTo* downMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, downMirrorMove));
+									mirrorBlock->runAction(downMoveAction);
+									//log("Rcount = %f", downMirrorMove);
+								}
+							}
+
+						}
+						_mirrorAblePositions.clear();
+						playerDiffPositions.clear();
+					}
+				}
+
+				//左反射
+				if (keyCode == EventKeyboard::KeyCode::KEY_A)
+				{
+					_player->rightFlag = false;
+					_player->runAction(flip);
+
+					if (getJumpFlag() == true)
+					{
+						_player->magicFlag = true;
+
+						Magic* sideMagic = _player->sideMirrorEffect();
+						this->setSideMagic(sideMagic);
+						_sideMagic->setPosition(_player->LRMagicPosition);
+						this->addChild(_sideMagic);
+					}
+
+					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
+					{
+						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
+
+
+						std::vector<float> playerDiffPositions;
+						float diffPosition;
+						if (_player->magicFlag == true)
+						{
+							for (Vec2 mirrorPosition : _mirrorAblePositions)
+							{
+								if (_player->rightFlag == false)
+								{
+									if (_standBlockPosition.x > mirrorPosition.x)
+									{
+										diffPosition = _standBlockPosition.x - mirrorPosition.x;
+										playerDiffPositions.push_back(diffPosition);
+										float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
+										MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
+										mirrorBlock->runAction(leftMoveAction);
+									}
+								}
+
 							}
 						}
-
+						_mirrorAblePositions.clear();
+						playerDiffPositions.clear();
 					}
 				}
-				_mirrorAblePositions.clear();
-				playerDiffPositions.clear();
+
+				//右反射
+				if (keyCode == EventKeyboard::KeyCode::KEY_D)
+				{
+					_player->rightFlag = true;
+					_player->runAction(flipback);
+
+					if (getJumpFlag() == true)
+					{
+						_player->magicFlag = true;
+
+						Magic* sideMagic = _player->sideMirrorEffect();
+						this->setSideMagic(sideMagic);
+						_sideMagic->setPosition(_player->LRMagicPosition);
+						this->addChild(_sideMagic);
+					}
+
+					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
+					{
+						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
+
+
+						std::vector<float> playerDiffPositions;
+						float diffPosition;
+						if (_player->magicFlag == true)
+						{
+							for (Vec2 mirrorPosition : _mirrorAblePositions)
+							{
+								if (_player->rightFlag == true)
+								{
+									if (_standBlockPosition.x < mirrorPosition.x)
+									{
+										diffPosition = mirrorPosition.x - _standBlockPosition.x;
+										playerDiffPositions.push_back(diffPosition);
+										float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
+										MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
+										mirrorBlock->runAction(rightMoveAction);
+										//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
+									}
+								}
+
+							}
+						}
+						_mirrorAblePositions.clear();
+						playerDiffPositions.clear();
+					}
+				}
 			}
 		}
-
-		
 	};
 
 	//たぶんキーを離した時のstop　詳細わかんない
@@ -383,13 +434,15 @@ void Stage::playerMove()
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
 		{
-
 			rightPressFlag = false;
+
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
 		{
 			upPressFlag = false;
+
 		}
+
 
 		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE || keyCode == EventKeyboard::KeyCode::KEY_A || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
@@ -422,14 +475,14 @@ Blocks* Stage::BlockGen(int gid)
 	//剛体マテリアル設定
 	auto material = PhysicsMaterial();
 	//摩擦
-	material.friction = 99;
-	material.restitution = 0.0;
+	material.friction = 1.0f;
+	material.restitution = 0.0f;
 
 	//剛体設置
 	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9 || gid == 12 || gid == 13){
 	auto category = 1;
 	Point box[4]{Point(-8, -8), Point(-8, 8), Point(8, 8), Point(8, -8)};
-	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material);
+	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material,1.0);
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
 	physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
@@ -484,13 +537,28 @@ float Stage::StageVecConvertY(float blockAncorVecs)
 //BGM再生とロード
 void Stage::onEnterTransitionDidFinish()
 {
-	Layer::onEnterTransitionDidFinish();
-	auto soundEngine = CocosDenshion::SimpleAudioEngine::getInstance();
-	soundEngine->setBackgroundMusicVolume(0.6f);
-	soundEngine->preloadBackgroundMusic("sounds/main_bgm.wav");
-	soundEngine->preloadBackgroundMusic("sounds/se_clear.wav");
 
-	soundEngine->playBackgroundMusic("sounds/main_bgm.wav", true);
+
+	log("%d", mainBgmID);
+	log("%d", Music::mainMusicID);
+	if (Music::mainMusicID != 2)
+	{
+		mainBgmID = experimental::AudioEngine::play2d("sounds/main_bgm.mp3", true, 0.8f);
+		Music::mainMusicID = mainBgmID;
+	}
+	if (Music::mainMusicID != mainBgmID)
+	{
+		mainBgmID = Music::mainMusicID;
+
+	}
+	else
+	{
+		Music::mainMusicID = mainBgmID;
+
+	}
+	Layer::onEnterTransitionDidFinish();
+	experimental::AudioEngine::setVolume(Music::mainMusicID, 0.8f);
+
 
 	this->scheduleUpdate();
 }
@@ -525,13 +593,12 @@ void Stage::update(float dt)
 	if (_playerPosition.y >= winSize.height)
 	{
 		_player->setPositionY(winSize.height);
-		_velocity.y = 0;
 	}
 
-	else if (_playerPosition.y <= 0)
+	else if (_playerPosition.y <= -16)
 	{
 		_player->setPositionY(0);
-		_velocity.y = 0;
+		_state = GameState::GAMEOVER;
 	}
 
 	auto flip = FlipX::create(true);
@@ -560,33 +627,40 @@ void Stage::update(float dt)
 			_velocity.x = 2;
 		}
 
-		if (leftPressFlag == false && rightPressFlag == false)
+		if (leftPressFlag == false && rightPressFlag == false && upPressFlag == false)
 		{
+			moveFlag = false;
 			if (getJumpFlag() == true)
 			{
-				if (_player->magicFlag == true)
+				if (magicUse == true)
 				{
-					CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_mirror.wav");
-
-					if (_player->upFlag == true)
+					if (_player->magicFlag == true)
 					{
-						_player->playAnimation(5);
-					}
-					else if (_player->downFlag == true)
-					{
-						_player->playAnimation(6);
-					}
-					else
-					{
-						_player->playAnimation(4);
+						experimental::AudioEngine::play2d("sounds/se_mirror.mp3", false, 0.8f);
+						if (_player->upFlag == true)
+						{
+							_player->playAnimation(5);
+						}
+						else if (_player->downFlag == true)
+						{
+							_player->playAnimation(6);
+						}
+						else
+						{
+							_player->playAnimation(4);
+						}
+						magicUse = false;
 					}
 
 				}
-				else{ _player->playAnimation(0); }
+
+				_player->playAnimation(0);
 			}
+		}
+		if (leftPressFlag == false && rightPressFlag == false)
+		{
 			_velocity.x = 0;
 		}
-
 		if (upPressFlag == true)
 		{
 			if (getJumpFlag() == true)
@@ -598,6 +672,7 @@ void Stage::update(float dt)
 
 		if (_player->stopR == true)
 		{
+
 			if (_velocity.x >= 0)
 			{
 				_velocity.x = 0;
@@ -629,21 +704,21 @@ void Stage::update(float dt)
 				if (_player->rightFlag == true)
 				{
 
-					_player->LRMagicPosition = Vec2(blockRect.getMaxX(), -224);
+					_player->LRMagicPosition = Vec2(blockRect.getMaxX(), 0);
 				}
 				else
 				{
-					_player->LRMagicPosition = Vec2(blockRect.getMinX(), -224);
+					_player->LRMagicPosition = Vec2(blockRect.getMinX(), 0);
 				}
 
 				if (_player->upFlag == true)
 				{
 
-					_player->UDMagicPosition = Vec2(-384, blockRect.getMinY());
+					_player->UDMagicPosition = Vec2(0, blockRect.getMinY());
 				}
 				else
 				{
-					_player->UDMagicPosition = Vec2(-384, blockRect.getMaxY());
+					_player->UDMagicPosition = Vec2(0, blockRect.getMaxY());
 				}
 			}
 		}
@@ -657,17 +732,18 @@ void Stage::update(float dt)
 			goalFlag = false;
 		}
 
-
 		if (goalFlag == true)
 		{
 			if (_playerPosition.y == _prevPosition.y)
 			{
 				_state = GameState::RESULT;
-
 				if (_state == GameState::RESULT)
 				{
-					CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
-					CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_clear.wav", false);
+					_velocity.x = 0;
+					_player->playAnimation(7);
+					experimental::AudioEngine::play2d("sounds/se_clear.mp3",false,0.8f);
+
+					onResult();
 				}
 			}
 			_prevPosition = _playerPosition;
@@ -684,24 +760,27 @@ void Stage::update(float dt)
 				_player->playAnimation(2);
 				for (Blocks* block : _allBlocks)
 				{
-
 					if (playerMapVec.x == BlockVecConvert(block->getPosition()).x)
 					{
 						if (playerMapVec.y - 1 == BlockVecConvert(block->getPosition()).y || playerMapVec.y == BlockVecConvert(block->getPosition()).y)
 						{
 							block->getPhysicsBody()->setCategoryBitmask(0);
 						}
-						else if (block->getPhysicsBody()->getCategoryBitmask() == 0)
+						else if (block->getPhysicsBody()->getCategoryBitmask()==0)
 						{
 							block->getPhysicsBody()->setCategoryBitmask(1);
 						}
 					}
-
+					else if (block->getPhysicsBody()->getCategoryBitmask() == 0)
+					{
+						block->getPhysicsBody()->setCategoryBitmask(1);
+					}
 				}
 			}
 
 			else if (_playerPosition.y < _prevPosition.y)
 			{
+				setJumpFlag(false);
 				_player->playAnimation(3);
 			}
 			_prevPosition = _playerPosition;
@@ -711,17 +790,35 @@ void Stage::update(float dt)
 		{
 			this->removeChild(_sideMagic);
 			this->removeChild(_upDownMagic);
-
 		}
 	}
-	if (_state == GameState::RESULT)
+	if (_state == GameState::GAMEOVER && _player->getParent() != nullptr)
 	{
-		_velocity.x = 0;
-
-		_player->playAnimation(7);
-
+		experimental::AudioEngine::play2d("sounds/se_cancel.mp3", false, 0.8f);
+		auto mainScene = MainScene::createSceneWithLevel(_level);
+		auto mainTransition = TransitionFade::create(1.0f, mainScene);
+		Director::getInstance()->replaceScene(mainTransition);
+		_player->removeFromParent();
 	}
+
+
 }
+
+void Stage::onResult()
+{
+	experimental::AudioEngine::setVolume(mainBgmID, 0.4);
+
+	if (_level < MAX_LEVEL)
+	{
+		clearNext->setVisible(true);
+	}
+	else
+	{
+		clearTitle->setVisible(true);
+	}
+
+}
+
 bool Stage::initWithLevel(int level)
 {
 	if (!Layer::init())
@@ -738,10 +835,10 @@ bool Stage::initWithLevel(int level)
 
 		//プレイヤーではない方を抽出
 		PhysicsShape* ground = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
+		
 		Node* groundNode = ground->getBody()->getNode();
 		nowBlockPosition = groundNode->getPosition();
 		//log("%f", worldPos.x);
-		_neighborBlockPositions.push_back(nowBlockPosition);
 
 		auto nowBlockVec = BlockVecConvert(nowBlockPosition);
 
@@ -756,19 +853,22 @@ bool Stage::initWithLevel(int level)
 	
 		Rect playerRect = _player->getBoundingBox();
 		float playerBottomY = playerRect.origin.y;
+		_neighborBlockPositions.push_back(nowBlockPosition);
+
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
 
+			//log("_neighborBlockPositions = %d", _neighborBlockPositions.size());
 			if (groundTopY <= playerBottomY)
 			{
 				setJumpFlag(true);
 			}
-			else
+			else if (_neighborBlockPositions.size() == 1)
 			{
+
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
 				{
-					
 					_player->stopL = true;
 				}
 				else if (minX <= playerRect.getMaxX() && nowBlockPosition.x > _player->getPositionX())
@@ -776,10 +876,22 @@ bool Stage::initWithLevel(int level)
 					_player->stopR = true;
 				}
 			}
-		}
+			else if (nowBlockVec.y <= playerMapVec.y)
+			{
+				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
+				{
+					_player->stopL = true;
+				}
+				else if (minX <= playerRect.getMaxX() && nowBlockPosition.x > _player->getPositionX())
+				{
+					_player->stopR = true;
+				}
 
+			}
+		}
 		return true;
-	};
+	}; 
+
 	contactListener->onContactSeperate = [this](PhysicsContact&contact){
 		if (_neighborBlockPositions.size() > 0)
 		{
@@ -890,13 +1002,25 @@ bool Stage::initWithLevel(int level)
 	guide->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
-	if (_state == GameState::RESULT && level <= MAX_LEVEL)
+
+	if (_level < MAX_LEVEL)
 	{
-		log("check");
-		level++;
+		clearNext = Sprite::create("graphics/clear_next.png");
+		clearNext->setPosition(Vec2(winSize.width / 2, winSize.height / 2));
+		clearNext->setVisible(false);
+		clearNext->getTexture()->setAliasTexParameters();
+		this->addChild(clearNext);
 	}
+	else
+	{
+		clearTitle = Sprite::create("graphics/clear_title.png");
+		clearTitle->setPosition(Vec2(winSize.width / 2, winSize.height / 2));
+		clearTitle->setVisible(false);
+		clearTitle->getTexture()->setAliasTexParameters();
+		this->addChild(clearTitle);
+	}
+
 	this->scheduleUpdate();
 
 	return true;
 }
-

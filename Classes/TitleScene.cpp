@@ -1,5 +1,7 @@
 #include "TitleScene.h"
+
 #include "MainScene.h"
+#include"AudioManager.h"
 
 USING_NS_CC;
 
@@ -16,8 +18,9 @@ Scene *TitleScene::createScene()
 }
 
 TitleScene::TitleScene()
+	:titleBGM(0)
 {
-
+	Music::mainMusicID = -1;
 }
 
 TitleScene::~TitleScene()
@@ -27,7 +30,7 @@ TitleScene::~TitleScene()
 void TitleScene::onEnterTransitionDidFinish()
 {
 	Layer::onEnterTransitionDidFinish();
-	CocosDenshion::SimpleAudioEngine::getInstance()->playBackgroundMusic("sounds/title_bgm.wav", true);
+	titleBGM = experimental::AudioEngine::play2d("sounds/title_bgm.mp3", 0.8f);
 }
 
 bool TitleScene::init()
@@ -105,10 +108,9 @@ bool TitleScene::init()
 
 			Start->runAction(Blink::create(1,4));
 			logo->setPosition(Vec2(194, 160));
-			CocosDenshion::SimpleAudioEngine::getInstance()->stopBackgroundMusic();
+			experimental::AudioEngine::stop(titleBGM);
+			experimental::AudioEngine::play2d("sounds/se_cancel.mp3", false, 0.8f);
 
-			CocosDenshion::SimpleAudioEngine::getInstance()->playEffect("sounds/se_ok.wav", false);
-			
 			auto scene = MainScene::createSceneWithLevel(INITIAL_LEVEL);
 			auto transition = TransitionFade::create(1.0f, scene);
 			Director::getInstance()->replaceScene(transition);

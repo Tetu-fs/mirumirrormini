@@ -4,11 +4,12 @@
 #include "vector"
 #include "math\CCMath.h"
 #include "cocos2d.h"
+#include "AudioEngine.h"
 
 #include "Player.h"
 #include "Blocks.h"
 
-#include "SimpleAudioEngine.h"
+
 class Stage : public cocos2d::Layer
 {
 
@@ -22,9 +23,13 @@ protected:
 	bool leftPressFlag;
 	bool rightPressFlag;
 
+	bool magicUse;
+	bool moveFlag;
+
 	bool upPressFlag;
 
 	bool goalFlag;
+	bool gameoverFlag;
 
 	void playerMove();
 	void jumpMethod();
@@ -40,11 +45,23 @@ protected:
 	int rectY;
 	int tileID;
 
+	//BGMのID
+	int mainBgmID;
+	//次のステージ
+	int nextLevel;
+
+
+	//魔法停止時間
+	int timeCount;
+
+
 	enum class GameState
 	{
 		PLAYING,
 
-		RESULT
+		RESULT,
+
+		GAMEOVER
 	};
 
 
@@ -95,6 +112,12 @@ protected:
 
 	//現在たっているブロックのガイドで表示しているスプライト
 	cocos2d::Sprite* testBlock;
+
+	//クリア後の表示
+	cocos2d::Sprite* clearNext;
+	cocos2d::Sprite* clearTitle;
+
+
 	//Blocksクラスの変数_blockGen　ブロックの生成メソッドを代入
 	Blocks* _blockGen;
 
@@ -111,6 +134,7 @@ public:
 		PLAYER = 2 << 0
 	};
 
+	void onResult();
 
 	void update(float dt) override;
 
@@ -130,10 +154,8 @@ public:
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CC_SYNTHESIZE_RETAIN(Blocks*, _blocks, Blocks);
 	CC_SYNTHESIZE(GameState, _state, State);
+	CC_SYNTHESIZE(int, _mainBgmID, MainBgmID);
 	static Stage* createWithLevel(int level);
-
-private:
-	//cocos2d::Sprite* addPhysicsBody(cocos2d::TMXLayer*layer, cocos2d::Vec2&coodinate);
 
 };
 
