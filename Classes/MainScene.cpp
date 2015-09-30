@@ -19,7 +19,7 @@ Scene* MainScene::createSceneWithLevel(int level)
 	auto scene = Scene::createWithPhysics();
 
 	auto world = scene->getPhysicsWorld();
-
+	
 	world->setGravity(GRAVITY_ACCELERATION);
 
 #if COCOS2D_DEBUG > 0
@@ -55,25 +55,25 @@ bool MainScene::initWithLevel(int level)
 	auto stage = Stage::createWithLevel(level);
 	this->setStage(stage);
 	this->addChild(stage);
-
-	//剛体作成
-	auto blocks = PhysicsBody::create();
-
+	/*
 	//カテゴリ作成
 	const int PhysicsCategoryBlocks = 1 << 0;
 	const int PhysicsCategoryChara = 2 << 0;
 
+	//剛体作成
+	auto blocks = PhysicsBody::create();
 	//剛体にカテゴリをセット
 	blocks->setCategoryBitmask(PhysicsCategoryBlocks);
+	blocks->setContactTestBitmask(PhysicsCategoryChara);
 
 	//プレイヤーの剛体作成
 	auto player = PhysicsBody::create();
 	player->setCategoryBitmask(PhysicsCategoryChara);
 
 	//衝突を有効に
-	player->setCollisionBitmask(PhysicsCategoryBlocks);
+	//player->setCollisionBitmask(PhysicsCategoryBlocks);
 	player->setContactTestBitmask(PhysicsCategoryBlocks);
-
+	*/
 	return true;
 
 }

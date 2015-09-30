@@ -24,11 +24,15 @@ Stage::Stage()
 	, goalFlag(false)
 	, magicUse(true)
 	, moveFlag(false)
-	
+	, wallFlag(false)
+
 	, _state(GameState::PLAYING)
 
 	, _sideMagic(nullptr)
 	, _upDownMagic(nullptr)
+
+	, _lastKeyCode(EventKeyboard::KeyCode::KEY_NONE)
+
 	, playerX(0)
 	, playerY(0)
 
@@ -74,12 +78,16 @@ Stage* Stage::createWithLevel(int level)
 }
 
 
-
+//ジャンプメソッド
 void Stage::jumpMethod()
 {
 	_player->getPhysicsBody()->applyImpulse(JUMP_IMPULSE);
+	_player->getPhysicsBody()->setGravityEnable(true);
+
 	setJumpFlag(false);
 }
+
+
 
 //プレイヤーの操作
 void Stage::playerMove()
@@ -157,6 +165,7 @@ void Stage::playerMove()
 										float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
 										MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
 										mirrorBlock->runAction(rightMoveAction);
+										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 										//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
 									}
 								}
@@ -170,6 +179,7 @@ void Stage::playerMove()
 										float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
 										MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
 										mirrorBlock->runAction(leftMoveAction);
+										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 										//log("Lcount = %f", diffPosition);
 									}
 								}
@@ -177,7 +187,9 @@ void Stage::playerMove()
 						}
 						_mirrorAblePositions.clear();
 						playerDiffPositions.clear();
+
 					}
+					
 				}
 			}
 			else if (_state == GameState::RESULT)
@@ -210,11 +222,7 @@ void Stage::playerMove()
 				leftPressFlag = true;
 				_player->rightFlag = false;
 				moveFlag = true;
-
-				if (rightPressFlag == true)
-				{
-					rightPressFlag = false;
-				}
+				_lastKeyCode = keyCode;
 			}
 			//そうではなくもし、キーが→だったら
 			if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
@@ -222,11 +230,7 @@ void Stage::playerMove()
 				rightPressFlag = true;
 				_player->rightFlag = true;
 				moveFlag = true;
-
-				if (leftPressFlag == true)
-				{
-					leftPressFlag = false;
-				}
+				_lastKeyCode = keyCode;
 			}
 			//もし押されたキーが↑だったら
 			if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
@@ -239,7 +243,9 @@ void Stage::playerMove()
 				this->scheduleOnce([this](float dt)
 				{
 					magicUse = true;
-				}, 0.5, "key");
+				}, 0.25, "key");
+
+
 			}
 			if (magicUse == true && moveFlag == false)
 			{
@@ -332,7 +338,6 @@ void Stage::playerMove()
 				if (keyCode == EventKeyboard::KeyCode::KEY_A)
 				{
 					_player->rightFlag = false;
-					_player->runAction(flip);
 
 					if (getJumpFlag() == true)
 					{
@@ -378,7 +383,6 @@ void Stage::playerMove()
 				if (keyCode == EventKeyboard::KeyCode::KEY_D)
 				{
 					_player->rightFlag = true;
-					_player->runAction(flipback);
 
 					if (getJumpFlag() == true)
 					{
@@ -482,11 +486,12 @@ Blocks* Stage::BlockGen(int gid)
 	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9 || gid == 12 || gid == 13){
 	auto category = 1;
 	Point box[4]{Point(-8, -8), Point(-8, 8), Point(8, 8), Point(8, -8)};
-	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material,1.0);
+	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material,0.5);
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
+	physicsBody->setCollisionBitmask(static_cast<int>(TileType::AIR));
 	physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
-	physicsBody->setCollisionBitmask(static_cast<int>(TileType::PLAYER));
+
 	blockGen->setPhysicsBody(physicsBody);
 	_allBlocks.pushBack(blockGen);
 	}
@@ -563,7 +568,7 @@ void Stage::onEnterTransitionDidFinish()
 	this->scheduleUpdate();
 }
 
-//メイン
+//毎フレーム更新
 void Stage::update(float dt)
 {
 	//Vec2型の_velocityという変数を整数値に直す？
@@ -600,33 +605,65 @@ void Stage::update(float dt)
 		_player->setPositionY(0);
 		_state = GameState::GAMEOVER;
 	}
-
-	auto flip = FlipX::create(true);
-	auto flipback = FlipX::create(false);
 	if (_state == GameState::PLAYING)
 	{
-		if (leftPressFlag == true)
+		auto flip = FlipX::create(true);
+		auto flipback = FlipX::create(false);
+		//左右の向き
+		if (_player->rightFlag == true)
 		{
-
-			if (getJumpFlag() == true)
-			{
-				_player->playAnimation(1);
-			}
+			_player->runAction(flipback);
+		}
+		else
+		{
 			_player->runAction(flip);
-			_velocity.x = -2;
 		}
 
-		if (rightPressFlag == true)
+		//左右移動
+		if (rightPressFlag == true && leftPressFlag == true)
 		{
+			if (_lastKeyCode == EventKeyboard::KeyCode::KEY_LEFT_ARROW)
+			{
+				_player->rightFlag = false;
+				if (getJumpFlag() == true)
+				{
+					_player->playAnimation(1);
+				}
+				_velocity.x = -2;
+			}
+			else
+			{
+				_player->rightFlag = true;
+
+				if (getJumpFlag() == true)
+				{
+					_player->playAnimation(1);
+				}
+				_velocity.x = 2;
+			}
+		}
+		else if (leftPressFlag == true)
+		{
+			_player->rightFlag = false;
 
 			if (getJumpFlag() == true)
 			{
 				_player->playAnimation(1);
 			}
-			_player->runAction(flipback);
+			_velocity.x = -2;
+		}
+		else if (rightPressFlag == true)
+		{
+			_player->rightFlag = true;
+
+			if (getJumpFlag() == true)
+			{
+				_player->playAnimation(1);
+			}
 			_velocity.x = 2;
 		}
 
+		//反射魔法や待機モーションの切り替え
 		if (leftPressFlag == false && rightPressFlag == false && upPressFlag == false)
 		{
 			moveFlag = false;
@@ -653,47 +690,52 @@ void Stage::update(float dt)
 					}
 
 				}
-
 				_player->playAnimation(0);
 			}
 		}
+		//左右移動していない時に動きを止める
 		if (leftPressFlag == false && rightPressFlag == false)
 		{
 			_velocity.x = 0;
 		}
-		if (upPressFlag == true)
-		{
-			if (getJumpFlag() == true)
-			{
-				jumpMethod();
-			}
-		}
 
-
+		//壁に衝突した際に動きを止める
 		if (_player->stopR == true)
 		{
-
-			if (_velocity.x >= 0)
+			if (_velocity.x > 0)
 			{
 				_velocity.x = 0;
 			}
 			else
 			{
+				_player->setPositionX(_player->getPositionX() - 1);
 				_player->stopR = false;
 			}
 		}
 		if (_player->stopL == true)
 		{
-			if (_velocity.x <= 0)
+			if (_velocity.x < 0)
 			{
 				_velocity.x = 0;
 			}
 			else
 			{
+				_player->setPositionX(_player->getPositionX() + 1);
 				_player->stopL = false;
 			}
 		}
 
+		//ジャンプ
+		if (getJumpFlag() == true)
+		{
+			if (upPressFlag == true)
+			{
+				jumpMethod();
+			}
+
+		}
+
+		//反射魔法のエフェクト範囲
 		for (Vec2 point : _neighborBlockPositions)
 		{
 			Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
@@ -722,16 +764,22 @@ void Stage::update(float dt)
 				}
 			}
 		}
-
-		if (Vec2(_standBlockPosition.x, _standBlockPosition.y - 1) == goalVec)
+		//ゴールフラグ
+		for (Vec2 _neighborBlocksMapVec : _neighborBlockPositions)
 		{
-			goalFlag = true;
-		}
-		else
-		{
-			goalFlag = false;
-		}
 
+			Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocksMapVec);
+			if (getJumpFlag() == true && Vec2(playerMapVec.x, playerMapVec.y + 1) == neighborBlockMapVec
+				&& Vec2(_standBlockPosition.x, _standBlockPosition.y - 1) == goalVec)
+			{
+				goalFlag = true;
+			}
+			else
+			{
+				goalFlag = false;
+			}
+		}
+		//ゴール判定
 		if (goalFlag == true)
 		{
 			if (_playerPosition.y == _prevPosition.y)
@@ -741,7 +789,7 @@ void Stage::update(float dt)
 				{
 					_velocity.x = 0;
 					_player->playAnimation(7);
-					experimental::AudioEngine::play2d("sounds/se_clear.mp3",false,0.8f);
+					experimental::AudioEngine::play2d("sounds/se_clear.mp3", false, 1.0f);
 
 					onResult();
 				}
@@ -750,6 +798,7 @@ void Stage::update(float dt)
 
 		}
 
+		//空中でのブロックすり抜け判定
 		playerX = BlockVecConvert(_player->getPosition()).x;
 		playerY = BlockVecConvert(_player->getPosition()).y;
 		playerMapVec = Vec2(playerX, playerY);
@@ -766,7 +815,7 @@ void Stage::update(float dt)
 						{
 							block->getPhysicsBody()->setCategoryBitmask(0);
 						}
-						else if (block->getPhysicsBody()->getCategoryBitmask()==0)
+						else if (block->getPhysicsBody()->getCategoryBitmask() == 0)
 						{
 							block->getPhysicsBody()->setCategoryBitmask(1);
 						}
@@ -783,15 +832,26 @@ void Stage::update(float dt)
 				setJumpFlag(false);
 				_player->playAnimation(3);
 			}
+			else if (_neighborBlockPositions.size() > 0)
+			{
+				setJumpFlag(true); 
+			}
+
 			_prevPosition = _playerPosition;
 		}
 
+
+		//魔法終了時にエフェクトを消す
 		if (_player->magicFlag == false)
 		{
 			this->removeChild(_sideMagic);
 			this->removeChild(_upDownMagic);
 		}
 	}
+
+
+
+	//ゲームオーバー
 	if (_state == GameState::GAMEOVER && _player->getParent() != nullptr)
 	{
 		experimental::AudioEngine::play2d("sounds/se_cancel.mp3", false, 0.8f);
@@ -800,10 +860,9 @@ void Stage::update(float dt)
 		Director::getInstance()->replaceScene(mainTransition);
 		_player->removeFromParent();
 	}
-
-
 }
 
+//クリア時の表示
 void Stage::onResult()
 {
 	experimental::AudioEngine::setVolume(mainBgmID, 0.4);
@@ -819,6 +878,7 @@ void Stage::onResult()
 
 }
 
+//メイン
 bool Stage::initWithLevel(int level)
 {
 	if (!Layer::init())
@@ -853,20 +913,74 @@ bool Stage::initWithLevel(int level)
 	
 		Rect playerRect = _player->getBoundingBox();
 		float playerBottomY = playerRect.origin.y;
-		_neighborBlockPositions.push_back(nowBlockPosition);
 
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
+			_neighborBlockPositions.push_back(nowBlockPosition);
 
-			//log("_neighborBlockPositions = %d", _neighborBlockPositions.size());
+
+
 			if (groundTopY <= playerBottomY)
 			{
-				setJumpFlag(true);
+				//壁乗りを封じる
+				//testBlock->setPosition(_neighborBlockPositions.back());
+
+				for (Blocks* block : _allBlocks)
+				{
+
+					for (Vec2 _neighborBlocksMapVec : _neighborBlockPositions)
+					{
+
+						Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocksMapVec);
+						Vec2 convertBlockMapVec = BlockVecConvert(block->getPosition());
+
+						//もしプレイヤーの真下にブロックがない
+						if (getJumpFlag() == true && Vec2(playerMapVec.x, playerMapVec.y + 1) != neighborBlockMapVec)
+						{
+
+							//if (_player->stopL == true)
+							if (_neighborBlockPositions.back() == StageVecConvert(Vec2(playerMapVec.x - 1, playerMapVec.y + 1))
+								//&& _neighborBlockPositions.size() == 3
+								&& _player->stopL == true)
+							{
+								if (_neighborBlockPositions.back() == block->getPosition())
+								{
+
+									_player->getPhysicsBody()->setVelocity(Vec2(0, -18));
+									_player->getPhysicsBody()->setGravityEnable(true);
+
+								}
+							}
+							else if (_neighborBlockPositions.back() == StageVecConvert(Vec2(playerMapVec.x + 1, playerMapVec.y + 1))
+								//&& _neighborBlockPositions.size() == 3
+								&& _player->stopR == true)
+							{
+								if (_neighborBlockPositions.back() == block->getPosition())
+								{
+									_player->getPhysicsBody()->setVelocity(Vec2(0, -18));
+									_player->getPhysicsBody()->setGravityEnable(true);
+								}
+							}
+
+						}
+						else
+						{
+	
+							_player->setPositionY(_prevPosition.y);
+							_prevPosition = _player->getPosition();
+
+							setJumpFlag(true);
+							_player->getPhysicsBody()->setVelocity(Vec2(0, 0));
+							_player->getPhysicsBody()->setGravityEnable(false);
+						}
+
+					}
+				}
 			}
+
 			else if (_neighborBlockPositions.size() == 1)
 			{
-
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
 				{
 					_player->stopL = true;
@@ -875,6 +989,7 @@ bool Stage::initWithLevel(int level)
 				{
 					_player->stopR = true;
 				}
+
 			}
 			else if (nowBlockVec.y <= playerMapVec.y)
 			{
@@ -888,7 +1003,9 @@ bool Stage::initWithLevel(int level)
 				}
 
 			}
+
 		}
+
 		return true;
 	}; 
 
@@ -899,6 +1016,9 @@ bool Stage::initWithLevel(int level)
 		}
 		if (_neighborBlockPositions.size() == 0)
 		{
+			//log("0 = %d", _neighborBlockPositions.size());
+			_player->getPhysicsBody()->setGravityEnable(true);
+			setJumpFlag(false);
 			_player->stopL = false;
 			_player->stopR = false;
 		}
@@ -1002,6 +1122,13 @@ bool Stage::initWithLevel(int level)
 	guide->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
+
+	testBlock = Sprite::create("graphics/white.png");
+	testBlock->setPosition(Vec2(0,0));
+	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	testBlock->setScale(16.0f);
+	testBlock->getTexture()->setAliasTexParameters();
+	this->addChild(testBlock);
 
 	if (_level < MAX_LEVEL)
 	{

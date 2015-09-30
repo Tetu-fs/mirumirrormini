@@ -31,6 +31,8 @@ protected:
 	bool goalFlag;
 	bool gameoverFlag;
 
+	bool wallFlag;
+
 	void playerMove();
 	void jumpMethod();
 	float playerX;
@@ -120,6 +122,7 @@ protected:
 
 	//Blocksクラスの変数_blockGen　ブロックの生成メソッドを代入
 	Blocks* _blockGen;
+	//最後に押されたキー
 
 
 	//　void型の長い名前の関数の宣言
@@ -128,10 +131,11 @@ protected:
 public:
 
 	enum TileType
-	{
+	{	
+		AIR = 0 << 0,
 		BLOCKS = 1 << 0,
-		GOAL = 1 << 1,
-		PLAYER = 2 << 0
+		PLAYER = 2 << 0,
+		NONE = 3 << 0
 	};
 
 	void onResult();
@@ -146,7 +150,7 @@ public:
 	CC_SYNTHESIZE(bool, _jumpFlag, JumpFlag);
 
 	CC_SYNTHESIZE_READONLY(int, _level, Level);
-
+	CC_SYNTHESIZE_READONLY(cocos2d::EventKeyboard::KeyCode, _lastKeyCode, LastKeyCode);
 	CC_SYNTHESIZE_RETAIN(Magic*, _sideMagic, SideMagic);
 	CC_SYNTHESIZE_RETAIN(Magic*, _upDownMagic, UpDownMagic);
 

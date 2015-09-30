@@ -5,7 +5,7 @@
 
 USING_NS_CC;
 
-const int INITIAL_LEVEL = 1;
+const int INITIAL_LEVEL = 4;
 
 Scene *TitleScene::createScene()
 {
