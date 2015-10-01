@@ -10,7 +10,7 @@ protected:
 	//bool init() override;
 	bool initWithLevel(int level);
 
-	MainScene::MainScene();
+	MainScene();
 	virtual ~MainScene() override;
 
 
