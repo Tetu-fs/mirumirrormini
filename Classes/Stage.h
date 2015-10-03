@@ -160,6 +160,7 @@ public:
 	CC_SYNTHESIZE(GameState, _state, State);
 	CC_SYNTHESIZE(int, _mainBgmID, MainBgmID);
 	static Stage* createWithLevel(int level);
+	void moveBlock(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
 
 };
 
