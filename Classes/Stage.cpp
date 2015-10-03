@@ -167,6 +167,10 @@ void Stage::playerMove()
 										mirrorBlock->runAction(rightMoveAction);
 										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 										//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
+										this->scheduleOnce([mirrorBlock](float dt)
+										{
+											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+										}, 0.2, "key");
 									}
 								}
 								//左反射
@@ -181,13 +185,17 @@ void Stage::playerMove()
 										mirrorBlock->runAction(leftMoveAction);
 										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 										//log("Lcount = %f", diffPosition);
+										this->scheduleOnce([mirrorBlock](float dt)
+										{
+											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+										}, 0.2, "key");
 									}
 								}
 							}
 						}
 						_mirrorAblePositions.clear();
 						playerDiffPositions.clear();
-
+	
 					}
 					
 				}
@@ -243,7 +251,7 @@ void Stage::playerMove()
 				this->scheduleOnce([this](float dt)
 				{
 					magicUse = true;
-				}, 0.25, "key");
+				}, 0.2, "key");
 
 
 			}
@@ -279,7 +287,13 @@ void Stage::playerMove()
 									diffPosition = _standBlockPosition.y - mirrorPosition.y;
 									//playerDiffPositions.push_back(diffPosition);
 									float upMirrorMove = StageVecConvertY(_standBlockPosition.y + diffPosition);
+									mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
+
 									MoveTo* upMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, upMirrorMove));
+									this->scheduleOnce([mirrorBlock](float dt)
+									{
+										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+									}, 0.2, "key");
 									mirrorBlock->runAction(upMoveAction);
 									//log("Rcount = %f", upMirrorMove);
 								}
@@ -288,6 +302,7 @@ void Stage::playerMove()
 						}
 						_mirrorAblePositions.clear();
 						playerDiffPositions.clear();
+	
 					}
 				}
 
@@ -322,7 +337,13 @@ void Stage::playerMove()
 									diffPosition = mirrorPosition.y - _standBlockPosition.y;
 									playerDiffPositions.push_back(diffPosition);
 									float downMirrorMove = StageVecConvertY(_standBlockPosition.y - diffPosition);
+									mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
+
 									MoveTo* downMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, downMirrorMove));
+									this->scheduleOnce([mirrorBlock](float dt)
+									{
+										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+									}, 0.2, "key");
 									mirrorBlock->runAction(downMoveAction);
 									//log("Rcount = %f", downMirrorMove);
 								}
@@ -365,9 +386,16 @@ void Stage::playerMove()
 									if (_standBlockPosition.x > mirrorPosition.x)
 									{
 										diffPosition = _standBlockPosition.x - mirrorPosition.x;
+										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
+
 										playerDiffPositions.push_back(diffPosition);
 										float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
+
 										MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
+										this->scheduleOnce([mirrorBlock](float dt)
+										{
+											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+										}, 0.2, "key");
 										mirrorBlock->runAction(leftMoveAction);
 									}
 								}
@@ -376,6 +404,7 @@ void Stage::playerMove()
 						}
 						_mirrorAblePositions.clear();
 						playerDiffPositions.clear();
+
 					}
 				}
 
@@ -412,7 +441,13 @@ void Stage::playerMove()
 										diffPosition = mirrorPosition.x - _standBlockPosition.x;
 										playerDiffPositions.push_back(diffPosition);
 										float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
+										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
+
 										MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
+										this->scheduleOnce([mirrorBlock](float dt)
+										{
+											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+										}, 0.2, "key");
 										mirrorBlock->runAction(rightMoveAction);
 										//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
 									}
@@ -422,6 +457,7 @@ void Stage::playerMove()
 						}
 						_mirrorAblePositions.clear();
 						playerDiffPositions.clear();
+
 					}
 				}
 			}
@@ -544,8 +580,8 @@ void Stage::onEnterTransitionDidFinish()
 {
 
 
-	log("%d", mainBgmID);
-	log("%d", Music::mainMusicID);
+	//log("%d", mainBgmID);
+	//log("%d", Music::mainMusicID);
 	if (Music::mainMusicID != 2)
 	{
 		mainBgmID = experimental::AudioEngine::play2d("sounds/main_bgm.mp3", true, 0.8f);
@@ -706,10 +742,18 @@ void Stage::update(float dt)
 			{
 				_velocity.x = 0;
 			}
-			else
+			for (Vec2 checkR : _neighborBlockPositions)
 			{
-				_player->setPositionX(_player->getPositionX() - 1);
+				if (playerMapVec.y <= BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
+				{
+
+					_player->stopR = true;
+					break;
+				}
 				_player->stopR = false;
+			}
+			if (_player->stopR == false){
+				log("checkR");
 			}
 		}
 		if (_player->stopL == true)
@@ -718,10 +762,18 @@ void Stage::update(float dt)
 			{
 				_velocity.x = 0;
 			}
-			else
+			for (Vec2 checkL : _neighborBlockPositions)
 			{
-				_player->setPositionX(_player->getPositionX() + 1);
+				if (playerMapVec.y <= BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
+				{
+
+					_player->stopL = true;
+					break;
+				}
 				_player->stopL = false;
+			}
+			if (_player->stopL == false){
+				log("checkL");
 			}
 		}
 
@@ -741,6 +793,7 @@ void Stage::update(float dt)
 			Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
 			if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 			{
+
 				_standBlockPosition = BlockVecConvert(point);
 
 				if (_player->rightFlag == true)
@@ -773,6 +826,7 @@ void Stage::update(float dt)
 				&& Vec2(_standBlockPosition.x, _standBlockPosition.y - 1) == goalVec)
 			{
 				goalFlag = true;
+				_prevPosition = _playerPosition;
 			}
 			else
 			{
@@ -782,8 +836,11 @@ void Stage::update(float dt)
 		//ゴール判定
 		if (goalFlag == true)
 		{
-			if (_playerPosition.y == _prevPosition.y)
+
+
+			if (static_cast<int>(_playerPosition.y) == static_cast<int>(_prevPosition.y))
 			{
+		
 				_state = GameState::RESULT;
 				if (_state == GameState::RESULT)
 				{
@@ -793,9 +850,9 @@ void Stage::update(float dt)
 
 					onResult();
 				}
-			}
-			_prevPosition = _playerPosition;
+				_prevPosition = _playerPosition;
 
+			}
 		}
 
 		//空中でのブロックすり抜け判定
@@ -847,6 +904,7 @@ void Stage::update(float dt)
 			this->removeChild(_sideMagic);
 			this->removeChild(_upDownMagic);
 		}
+
 	}
 
 
@@ -919,13 +977,9 @@ bool Stage::initWithLevel(int level)
 		{
 			_neighborBlockPositions.push_back(nowBlockPosition);
 
-
-
 			if (groundTopY <= playerBottomY)
 			{
 				//壁乗りを封じる
-				//testBlock->setPosition(_neighborBlockPositions.back());
-
 				for (Blocks* block : _allBlocks)
 				{
 
@@ -941,19 +995,16 @@ bool Stage::initWithLevel(int level)
 
 							//if (_player->stopL == true)
 							if (_neighborBlockPositions.back() == StageVecConvert(Vec2(playerMapVec.x - 1, playerMapVec.y + 1))
-								//&& _neighborBlockPositions.size() == 3
 								&& _player->stopL == true)
 							{
 								if (_neighborBlockPositions.back() == block->getPosition())
 								{
-
 									_player->getPhysicsBody()->setVelocity(Vec2(0, -18));
 									_player->getPhysicsBody()->setGravityEnable(true);
 
 								}
 							}
 							else if (_neighborBlockPositions.back() == StageVecConvert(Vec2(playerMapVec.x + 1, playerMapVec.y + 1))
-								//&& _neighborBlockPositions.size() == 3
 								&& _player->stopR == true)
 							{
 								if (_neighborBlockPositions.back() == block->getPosition())
@@ -966,9 +1017,8 @@ bool Stage::initWithLevel(int level)
 						}
 						else
 						{
-	
-							_player->setPositionY(_prevPosition.y);
 							_prevPosition = _player->getPosition();
+							_player->setPositionY(_prevPosition.y);
 
 							setJumpFlag(true);
 							_player->getPhysicsBody()->setVelocity(Vec2(0, 0));
@@ -978,20 +1028,8 @@ bool Stage::initWithLevel(int level)
 					}
 				}
 			}
-
-			else if (_neighborBlockPositions.size() == 1)
-			{
-				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
-				{
-					_player->stopL = true;
-				}
-				else if (minX <= playerRect.getMaxX() && nowBlockPosition.x > _player->getPositionX())
-				{
-					_player->stopR = true;
-				}
-
-			}
-			else if (nowBlockVec.y <= playerMapVec.y)
+			//左右の衝突時に止める
+			else if (_neighborBlockPositions.size() == 1 || nowBlockVec.y <= playerMapVec.y)
 			{
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
 				{
@@ -1108,7 +1146,7 @@ bool Stage::initWithLevel(int level)
 	this->setPlayer(luk);
 	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 
-	luk->setPosition(Vec2(64, 92));
+	luk->setPosition(Vec2(56, 92));
 	luk->getTexture()->setAliasTexParameters();
 	luk->setLocalZOrder(10);
 	_player->playAnimation(0);
@@ -1122,14 +1160,16 @@ bool Stage::initWithLevel(int level)
 	guide->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
-
+	/*
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setPosition(Vec2(0,0));
 	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	testBlock->setScale(16.0f);
 	testBlock->getTexture()->setAliasTexParameters();
+	testBlock->setZOrder(99);
 	this->addChild(testBlock);
-
+	testBlock->setPosition(_neighborBlockPositions.back());
+	*/
 	if (_level < MAX_LEVEL)
 	{
 		clearNext = Sprite::create("graphics/clear_next.png");
