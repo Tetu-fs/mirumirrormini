@@ -88,6 +88,38 @@ void Stage::jumpMethod()
 }
 
 
+void Stage::moveBlock(Blocks* mirrorBlock, Vec2 mirrorPosition)
+{
+	std::vector<float> playerDiffPositions;
+	float mirrorMove;
+	float diffPosition = mirrorPosition.x - _standBlockPosition.x;
+	playerDiffPositions.push_back(diffPosition);
+
+	if (_player->rightFlag == true)
+	{
+		if (_standBlockPosition.x < mirrorPosition.x)
+		{
+			mirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
+		}
+	}
+	else 
+	{
+		if (_standBlockPosition.x > mirrorPosition.x)
+		{
+			mirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
+		}
+	}
+
+	MoveTo* moveAction = MoveTo::create(0.2, Vec2(mirrorMove, mirrorBlock->getPosition().y));
+	mirrorBlock->runAction(moveAction);
+	mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
+	this->scheduleOnce([mirrorBlock](float dt)
+	{
+		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+	}, 0.2, "key");
+
+	playerDiffPositions.clear();
+}
 
 //プレイヤーの操作
 void Stage::playerMove()
@@ -147,54 +179,14 @@ void Stage::playerMove()
 					{
 						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
 
-
-						std::vector<float> playerDiffPositions;
-						float diffPosition;
 						if (_player->magicFlag == true)
 						{
 							for (Vec2 mirrorPosition : _mirrorAblePositions)
 							{
-								//右反射
-								if (_player->rightFlag == true)
-								{
-
-									if (_standBlockPosition.x < mirrorPosition.x)
-									{
-										diffPosition = mirrorPosition.x - _standBlockPosition.x;
-										playerDiffPositions.push_back(diffPosition);
-										float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
-										MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
-										mirrorBlock->runAction(rightMoveAction);
-										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-										//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
-										this->scheduleOnce([mirrorBlock](float dt)
-										{
-											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-										}, 0.2, "key");
-									}
-								}
-								//左反射
-								else
-								{
-									if (_standBlockPosition.x > mirrorPosition.x)
-									{
-										diffPosition = _standBlockPosition.x - mirrorPosition.x;
-										playerDiffPositions.push_back(diffPosition);
-										float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
-										MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
-										mirrorBlock->runAction(leftMoveAction);
-										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-										//log("Lcount = %f", diffPosition);
-										this->scheduleOnce([mirrorBlock](float dt)
-										{
-											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-										}, 0.2, "key");
-									}
-								}
+								moveBlock(mirrorBlock, mirrorPosition);
 							}
 						}
 						_mirrorAblePositions.clear();
-						playerDiffPositions.clear();
 	
 					}
 					
@@ -375,35 +367,14 @@ void Stage::playerMove()
 						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
 
 
-						std::vector<float> playerDiffPositions;
-						float diffPosition;
 						if (_player->magicFlag == true)
 						{
 							for (Vec2 mirrorPosition : _mirrorAblePositions)
 							{
-								if (_player->rightFlag == false)
-								{
-									if (_standBlockPosition.x > mirrorPosition.x)
-									{
-										diffPosition = _standBlockPosition.x - mirrorPosition.x;
-										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-
-										playerDiffPositions.push_back(diffPosition);
-										float leftMirrorMove = StageVecConvertX(_standBlockPosition.x + diffPosition);
-
-										MoveTo* leftMoveAction = MoveTo::create(0.2, Vec2(leftMirrorMove, mirrorBlock->getPosition().y));
-										this->scheduleOnce([mirrorBlock](float dt)
-										{
-											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-										}, 0.2, "key");
-										mirrorBlock->runAction(leftMoveAction);
-									}
-								}
-
+								moveBlock(mirrorBlock, mirrorPosition);
 							}
 						}
 						_mirrorAblePositions.clear();
-						playerDiffPositions.clear();
 
 					}
 				}
@@ -427,36 +398,14 @@ void Stage::playerMove()
 					{
 						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
 
-
-						std::vector<float> playerDiffPositions;
-						float diffPosition;
 						if (_player->magicFlag == true)
 						{
 							for (Vec2 mirrorPosition : _mirrorAblePositions)
 							{
-								if (_player->rightFlag == true)
-								{
-									if (_standBlockPosition.x < mirrorPosition.x)
-									{
-										diffPosition = mirrorPosition.x - _standBlockPosition.x;
-										playerDiffPositions.push_back(diffPosition);
-										float rightMirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
-										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-
-										MoveTo* rightMoveAction = MoveTo::create(0.2, Vec2(rightMirrorMove, mirrorBlock->getPosition().y));
-										this->scheduleOnce([mirrorBlock](float dt)
-										{
-											mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-										}, 0.2, "key");
-										mirrorBlock->runAction(rightMoveAction);
-										//log("Rcount = %f", _standBlockPosition.x - diffPosition * MAPCHIP_SIZE);
-									}
-								}
-
+								moveBlock(mirrorBlock, mirrorPosition);
 							}
 						}
 						_mirrorAblePositions.clear();
-						playerDiffPositions.clear();
 
 					}
 				}
