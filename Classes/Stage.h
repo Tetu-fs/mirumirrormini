@@ -37,7 +37,9 @@ protected:
 	void jumpMethod();
 	float playerX;
 	float playerY;
-	
+	//次のステージ
+	int nextLevel;
+
 	//BlockGen
 	int blockX;
 	int blockY;
@@ -46,15 +48,13 @@ protected:
 	int rectX;
 	int rectY;
 	int tileID;
+	
+	//反射ブロックを動かす変数
+	float mirrorMove;
 
 	//BGMのID
 	int mainBgmID;
-	//次のステージ
-	int nextLevel;
 
-
-	//魔法停止時間
-	int timeCount;
 
 
 	enum class GameState
@@ -98,9 +98,10 @@ protected:
 	//反射ブロックを格納する配列
 	std::vector<Blocks*> _mirrorAbleBlocks;
 
-
 	//反射ブロックのマップ座標を格納する配列
 	std::vector<cocos2d::Vec2> _mirrorAblePositions;
+	
+
 
 	//引数に渡されたStage上の座標をマップ座標に変換するメソッド
 	cocos2d::Vec2 BlockVecConvert(cocos2d::Vec2 blockAncorVecs);
@@ -118,7 +119,6 @@ protected:
 	//クリア後の表示
 	cocos2d::Sprite* clearNext;
 	cocos2d::Sprite* clearTitle;
-
 
 	//Blocksクラスの変数_blockGen　ブロックの生成メソッドを代入
 	Blocks* _blockGen;
@@ -160,7 +160,8 @@ public:
 	CC_SYNTHESIZE(GameState, _state, State);
 	CC_SYNTHESIZE(int, _mainBgmID, MainBgmID);
 	static Stage* createWithLevel(int level);
-	void moveBlock(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
+	void moveBlockX(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
+	void moveBlockY(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
 
 };
 
