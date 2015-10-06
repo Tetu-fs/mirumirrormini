@@ -96,27 +96,23 @@ void Stage::moveBlockX(Blocks* mirrorBlock, Vec2 mirrorPosition)
 	mirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
 	MoveTo* moveAction = MoveTo::create(0.2, Vec2(mirrorMove, mirrorBlock->getPosition().y));
 
-	if (_player->rightFlag == true)
+	if (_player->rightFlag == true && _standBlockPosition.x < mirrorPosition.x)
 	{
-		if (_standBlockPosition.x < mirrorPosition.x)
-		{
-
-			mirrorBlock->runAction(moveAction);
-			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-		}
+		mirrorBlock->runAction(moveAction);
+		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
-	else 
+	else if (_player->rightFlag == false && _standBlockPosition.x > mirrorPosition.x)
 	{
-		if (_standBlockPosition.x > mirrorPosition.x)
-		{
-			mirrorBlock->runAction(moveAction);
-			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-		}
+		mirrorBlock->runAction(moveAction);
+		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
 
-	this->scheduleOnce([mirrorBlock](float dt)
+	this->scheduleOnce([this](float dt)
 	{
-		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
+		{
+			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+		}
 	}, 0.2, "key");
 	playerDiffPositions.clear();
 }
@@ -135,7 +131,6 @@ void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 	{
 		if (_standBlockPosition.y > mirrorPosition.y)
 		{
-
 			mirrorBlock->runAction(moveAction);
 			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 		}
@@ -144,15 +139,16 @@ void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 	{
 		if (_standBlockPosition.y < mirrorPosition.y)
 		{
-
 			mirrorBlock->runAction(moveAction);
 			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 		}
 	}
-
-	this->scheduleOnce([mirrorBlock](float dt)
+	this->scheduleOnce([this](float dt)
 	{
-		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
+		{
+			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+		}
 	}, 0.2, "key");
 	playerDiffPositions.clear();
 }
@@ -729,6 +725,7 @@ void Stage::update(float dt)
 			{
 				_velocity.x = 0;
 			}
+
 			for (Vec2 checkR : _neighborBlockPositions)
 			{
 				if (playerMapVec.y <= BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
@@ -739,14 +736,14 @@ void Stage::update(float dt)
 				}
 				else
 				{
-					_player->stopL = false;
+					//log("checkR_wall");
+
+					_player->stopR = false;
 				}
 			}
-			if (_player->stopR == false){
-				log("checkR");
-			}
+			//if (_player->stopR == false){log("checkR");}
 		}
-		if (_player->stopL == true)
+		else if (_player->stopL == true)
 		{
 			if (_velocity.x < 0)
 			{
@@ -756,17 +753,19 @@ void Stage::update(float dt)
 			{
 				if (playerMapVec.y <= BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
 				{
+					//log("checkL_wall");
+
 					_player->stopL = true;
 					break;
 				}
 				else
 				{
+					//log("check");
+
 					_player->stopL = false;
 				}
 			}
-			if (_player->stopL == false){
-				log("checkL");
-			}
+			//if (_player->stopL == false){}
 		}
 
 		//ジャンプ
@@ -777,42 +776,43 @@ void Stage::update(float dt)
 				jumpMethod();
 			}
 		}
-		//着地時に落下を止める
-		if (getJumpFlag() == true && wallFlag == false && _prevPosition.y != _player->getPosition().y)
-		{
-			_player->setPositionY(_prevPosition.y);
-			_prevPosition.y = _player->getPosition().y;
-		}
 
 		//反射魔法のエフェクト範囲
-		for (Vec2 point : _neighborBlockPositions)
+		//着地時に落下を止める
+		if (getJumpFlag() == true && wallFlag == false
+			&& _prevPosition.y != _player->getPosition().y)
 		{
-			Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
-			if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
+			for (Vec2 point : _neighborBlockPositions)
 			{
-
-				_standBlockPosition = BlockVecConvert(point);
-
-				if (_player->rightFlag == true)
+				Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
+				if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 				{
+					_standBlockPosition = BlockVecConvert(point);
+					_player->setPositionY(point.y + (MAPCHIP_SIZE / 2) + 12);
+				
+					if (_player->rightFlag == true)
+					{
 
-					_player->LRMagicPosition = Vec2(blockRect.getMaxX(), 0);
-				}
-				else
-				{
-					_player->LRMagicPosition = Vec2(blockRect.getMinX(), 0);
-				}
+						_player->LRMagicPosition = Vec2(blockRect.getMaxX(), 0);
+					}
+					else
+					{
+						_player->LRMagicPosition = Vec2(blockRect.getMinX(), 0);
+					}
 
-				if (_player->upFlag == true)
-				{
+					if (_player->upFlag == true)
+					{
 
-					_player->UDMagicPosition = Vec2(0, blockRect.getMinY());
-				}
-				else
-				{
-					_player->UDMagicPosition = Vec2(0, blockRect.getMaxY());
+						_player->UDMagicPosition = Vec2(0, blockRect.getMinY());
+					}
+					else
+					{
+						_player->UDMagicPosition = Vec2(0, blockRect.getMaxY());
+					}
 				}
 			}
+
+			
 		}
 		//ゴールフラグ
 		for (Vec2 _neighborBlocksMapVec : _neighborBlockPositions)
@@ -858,38 +858,37 @@ void Stage::update(float dt)
 		playerMapVec = Vec2(playerX, playerY);
 		if (getJumpFlag() == false)
 		{
-			if (_playerPosition.y > _prevPosition.y)
+			for (Blocks* block : _allBlocks)
 			{
-				_player->playAnimation(2);
-				for (Blocks* block : _allBlocks)
+				if (_playerPosition.y > _prevPosition.y)
 				{
+					_player->playAnimation(2);
+
 					if (playerMapVec.x == BlockVecConvert(block->getPosition()).x)
 					{
 						if (playerMapVec.y - 1 == BlockVecConvert(block->getPosition()).y || playerMapVec.y == BlockVecConvert(block->getPosition()).y)
 						{
-							block->getPhysicsBody()->setCategoryBitmask(0);
+							block->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 						}
-						else if (block->getPhysicsBody()->getCategoryBitmask() == 0)
+						else if (block->getPhysicsBody()->getCategoryBitmask() == static_cast<int>(TileType::AIR))
 						{
-							block->getPhysicsBody()->setCategoryBitmask(1);
+							block->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
 						}
-					}
-					else if (block->getPhysicsBody()->getCategoryBitmask() == 0)
-					{
-						block->getPhysicsBody()->setCategoryBitmask(1);
 					}
 				}
-			}
 
-			else if (_playerPosition.y < _prevPosition.y)
+				else if (block->getPhysicsBody()->getCategoryBitmask() == static_cast<int>(TileType::AIR))
+				{
+					block->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+				}
+			}
+			if (_playerPosition.y < _prevPosition.y)
 			{
 				setJumpFlag(false);
 				_player->playAnimation(3);
 			}
-			else if (_neighborBlockPositions.size() > 0)
-			{
-				setJumpFlag(true); 
-			}
+			//else if (_neighborBlockPositions.size() > 0)
+			//{setJumpFlag(true); }
 
 			_prevPosition = _playerPosition;
 		}
@@ -976,6 +975,7 @@ bool Stage::initWithLevel(int level)
 
 			if (groundTopY <= playerBottomY)
 			{
+				log("PY = %f", _player->getPosition().y);
 				//壁乗りを封じる
 				for (Blocks* block : _allBlocks)
 				{
@@ -1016,8 +1016,8 @@ bool Stage::initWithLevel(int level)
 						else
 						{
 							setJumpFlag(true);
-							_player->getPhysicsBody()->setVelocity(Vec2(0, 0));
 							_player->getPhysicsBody()->setGravityEnable(false);
+							_player->getPhysicsBody()->setVelocity(Vec2(0, 0));
 							wallFlag = false;
 						}
 					}
@@ -1028,9 +1028,6 @@ bool Stage::initWithLevel(int level)
 			{
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
 				{
-					log("blockRectX = %f", maxX);
-
-					log("playerRectX = %f", playerRect.getMinX());
 					_player->stopL = true;
 				}
 				else if (minX <= playerRect.getMaxX() && nowBlockPosition.x > _player->getPositionX())
@@ -1052,7 +1049,7 @@ bool Stage::initWithLevel(int level)
 		}
 		if (_neighborBlockPositions.size() == 0)
 		{
-			//log("0 = %d", _neighborBlockPositions.size());
+			//log("check");
 			_player->getPhysicsBody()->setGravityEnable(true);
 			setJumpFlag(false);
 			_player->stopL = false;
