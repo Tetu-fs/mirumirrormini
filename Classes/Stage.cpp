@@ -725,23 +725,23 @@ void Stage::update(float dt)
 			{
 				_velocity.x = 0;
 			}
-
 			for (Vec2 checkR : _neighborBlockPositions)
 			{
-				if (playerMapVec.y <= BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
+				if (playerMapVec.y >= BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
 				{
-
+					_player->stopR = true;
+					break;
+				}
+				else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
+				{
 					_player->stopR = true;
 					break;
 				}
 				else
 				{
-					//log("checkR_wall");
-
 					_player->stopR = false;
 				}
 			}
-			//if (_player->stopR == false){log("checkR");}
 		}
 		else if (_player->stopL == true)
 		{
@@ -751,21 +751,21 @@ void Stage::update(float dt)
 			}
 			for (Vec2 checkL : _neighborBlockPositions)
 			{
-				if (playerMapVec.y <= BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
+				if (playerMapVec.y >= BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
 				{
-					//log("checkL_wall");
-
+					_player->stopL = true;
+					break;
+				}
+				else if(getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
+				{
 					_player->stopL = true;
 					break;
 				}
 				else
 				{
-					//log("check");
-
 					_player->stopL = false;
 				}
 			}
-			//if (_player->stopL == false){}
 		}
 
 		//ジャンプ
@@ -1155,7 +1155,7 @@ bool Stage::initWithLevel(int level)
 	guide->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
-	/*
+
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setPosition(Vec2(0,0));
 	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
@@ -1163,8 +1163,7 @@ bool Stage::initWithLevel(int level)
 	testBlock->getTexture()->setAliasTexParameters();
 	testBlock->setZOrder(99);
 	this->addChild(testBlock);
-	testBlock->setPosition(_neighborBlockPositions.back());
-	*/
+	
 	if (_level < MAX_LEVEL)
 	{
 		clearNext = Sprite::create("graphics/clear_next.png");
