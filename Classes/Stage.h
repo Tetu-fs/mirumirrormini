@@ -72,6 +72,8 @@ protected:
 	//現在たっているブロック用のガイド
 	cocos2d::Vec2 testVec;
 
+	cocos2d::Vec2 check;
+
 	//ゴールの場所
 	cocos2d::Vec2 goalVec;
 
@@ -158,11 +160,10 @@ public:
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CC_SYNTHESIZE_RETAIN(Blocks*, _blocks, Blocks);
 	CC_SYNTHESIZE(GameState, _state, State);
-	CC_SYNTHESIZE(int, _mainBgmID, MainBgmID);
 	static Stage* createWithLevel(int level);
 	void moveBlockX(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
 	void moveBlockY(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
-
+	void checkStop();
 };
 
 #endif //__STAGE_H__

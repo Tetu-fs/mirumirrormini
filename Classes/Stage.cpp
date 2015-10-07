@@ -9,7 +9,7 @@ USING_NS_CC;
 const Vec2 JUMP_IMPULSE = Vec2(0, 260);
 const int MAPCHIP_SIZE = 16;
 const float MAP_HEIGHT = 14;
-const int MAX_LEVEL = 4;
+const int MAX_LEVEL = 9;
 
 const char* STAGE_FILE = "graphics/stage%d.tmx";
 
@@ -37,7 +37,6 @@ Stage::Stage()
 	, playerY(0)
 
 	, _level(0)
-	, _mainBgmID(-1)
 
 	, blockX(0)
 	, blockY(0)
@@ -48,6 +47,7 @@ Stage::Stage()
 	, rectY(0)
 	, nextLevel(0)
 	, mirrorMove(0)
+	, mainBgmID(0)
 {
 
 }
@@ -106,12 +106,14 @@ void Stage::moveBlockX(Blocks* mirrorBlock, Vec2 mirrorPosition)
 		mirrorBlock->runAction(moveAction);
 		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
-
+	//_player->getPhysicsBody()->applyImpulse(Vec2(0,20));
+	//_player->getPhysicsBody()->setGravityEnable(true);
 	this->scheduleOnce([this](float dt)
 	{
 		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
 		{
 			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+
 		}
 	}, 0.2, "key");
 	playerDiffPositions.clear();
@@ -296,37 +298,15 @@ void Stage::playerMove()
 					{
 						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
 
-
-						//std::vector<float> playerDiffPositions;
-						//float diffPosition;
 						if (_player->magicFlag == true)
 						{
 							for (Vec2 mirrorPosition : _mirrorAblePositions)
 							{
 								moveBlockY(mirrorBlock, mirrorPosition);
-								/*
-								if (_standBlockPosition.y > mirrorPosition.y)
-								{
-									diffPosition = _standBlockPosition.y - mirrorPosition.y;
-									//playerDiffPositions.push_back(diffPosition);
-									float upMirrorMove = StageVecConvertY(_standBlockPosition.y + diffPosition);
-									mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-
-									MoveTo* upMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, upMirrorMove));
-									this->scheduleOnce([mirrorBlock](float dt)
-									{
-										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-									}, 0.2, "key");
-									mirrorBlock->runAction(upMoveAction);
-									//log("Rcount = %f", upMirrorMove);
-								}
-								*/
 							}
 
 						}
 						_mirrorAblePositions.clear();
-						//playerDiffPositions.clear();
-	
 					}
 				}
 
@@ -349,9 +329,6 @@ void Stage::playerMove()
 					{
 						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
 
-
-						//std::vector<float> playerDiffPositions;
-						//float diffPosition;
 						if (_player->magicFlag == true)
 						{
 							for (Vec2 mirrorPosition : _mirrorAblePositions)
@@ -359,25 +336,11 @@ void Stage::playerMove()
 								if (_standBlockPosition.y < mirrorPosition.y)
 								{
 									moveBlockY(mirrorBlock, mirrorPosition);
-									/*
-									diffPosition = mirrorPosition.y - _standBlockPosition.y;
-									playerDiffPositions.push_back(diffPosition);
-									float downMirrorMove = StageVecConvertY(_standBlockPosition.y - diffPosition);
-									mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
-
-									MoveTo* downMoveAction = MoveTo::create(0.2, Vec2(mirrorBlock->getPosition().x, downMirrorMove));
-									this->scheduleOnce([mirrorBlock](float dt)
-									{
-										mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-									}, 0.2, "key");
-									mirrorBlock->runAction(downMoveAction);
-									*/
 								}
 							}
 
 						}
 						_mirrorAblePositions.clear();
-						//playerDiffPositions.clear();
 					}
 				}
 
@@ -458,14 +421,11 @@ void Stage::playerMove()
 		if (keyCode == EventKeyboard::KeyCode::KEY_RIGHT_ARROW)
 		{
 			rightPressFlag = false;
-
 		}
 		if (keyCode == EventKeyboard::KeyCode::KEY_UP_ARROW)
 		{
 			upPressFlag = false;
-
 		}
-
 
 		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE || keyCode == EventKeyboard::KeyCode::KEY_A || keyCode == EventKeyboard::KeyCode::KEY_D)
 		{
@@ -561,19 +521,17 @@ float Stage::StageVecConvertY(float blockAncorVecs)
 //BGM再生とロード
 void Stage::onEnterTransitionDidFinish()
 {
-
-
-	//log("%d", mainBgmID);
-	//log("%d", Music::mainMusicID);
-	if (Music::mainMusicID != 2)
+	if (Music::mainMusicID < 2)
 	{
 		mainBgmID = experimental::AudioEngine::play2d("sounds/main_bgm.mp3", true, 0.8f);
 		Music::mainMusicID = mainBgmID;
+		log("playBgm %d", mainBgmID);
+
 	}
 	if (Music::mainMusicID != mainBgmID)
 	{
 		mainBgmID = Music::mainMusicID;
-
+		log("noBgm %d", mainBgmID);
 	}
 	else
 	{
@@ -585,6 +543,67 @@ void Stage::onEnterTransitionDidFinish()
 
 
 	this->scheduleUpdate();
+}
+
+void Stage::checkStop()
+{
+
+	if (_player->rightFlag == true)
+	{
+		for (Vec2 checkR : _neighborBlockPositions)
+		{
+			if (playerMapVec.y >= BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
+			{
+				testBlock->setPosition(checkR);
+				_player->stopR = true;
+				break;
+			}
+			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
+			{
+				testBlock->setPosition(checkR);
+
+				_player->stopR = true;
+				break;
+			}
+			for (Blocks* allblock : _allBlocks)
+			{
+				if (_player->stopR == true && checkR != allblock->getPosition())
+				{
+				testBlock->setPosition(StageVecConvert(_standBlockPosition));
+
+				_player->stopR = false;
+				}
+			}
+		}
+	}
+	else if (_player->rightFlag == false)
+	{
+
+		for (Vec2 checkL : _neighborBlockPositions)
+		{
+			if (playerMapVec.y >= BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
+			{
+				testBlock->setPosition(checkL);
+
+				_player->stopL = true;
+				break;
+			}
+			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
+			{
+				testBlock->setPosition(checkL);
+
+				_player->stopL = true;
+				break;
+			}
+			else
+			{
+				testBlock->setPosition(_standBlockPosition);
+
+				_player->stopL = false;
+			}
+		}
+	}
+
 }
 
 //毎フレーム更新
@@ -719,55 +738,21 @@ void Stage::update(float dt)
 		}
 
 		//壁に衝突した際に動きを止める
-		if (_player->stopR == true)
-		{
-			if (_velocity.x > 0)
-			{
-				_velocity.x = 0;
-			}
-			for (Vec2 checkR : _neighborBlockPositions)
-			{
-				if (playerMapVec.y >= BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
-				{
-					_player->stopR = true;
-					break;
-				}
-				else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
-				{
-					_player->stopR = true;
-					break;
-				}
-				else
-				{
-					_player->stopR = false;
-				}
-			}
-		}
-		else if (_player->stopL == true)
+		checkStop();
+		if (_player->stopL == true)
 		{
 			if (_velocity.x < 0)
 			{
 				_velocity.x = 0;
 			}
-			for (Vec2 checkL : _neighborBlockPositions)
+		}
+		else if (_player->stopR == true)
+		{
+			if (_velocity.x > 0)
 			{
-				if (playerMapVec.y >= BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
-				{
-					_player->stopL = true;
-					break;
-				}
-				else if(getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
-				{
-					_player->stopL = true;
-					break;
-				}
-				else
-				{
-					_player->stopL = false;
-				}
+				_velocity.x = 0;
 			}
 		}
-
 		//ジャンプ
 		if (getJumpFlag() == true)
 		{
@@ -784,6 +769,7 @@ void Stage::update(float dt)
 		{
 			for (Vec2 point : _neighborBlockPositions)
 			{
+				Rect playerRect = _player->getBoundingBox();
 				Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
 				if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 				{
@@ -810,9 +796,7 @@ void Stage::update(float dt)
 						_player->UDMagicPosition = Vec2(0, blockRect.getMaxY());
 					}
 				}
-			}
-
-			
+			}			
 		}
 		//ゴールフラグ
 		for (Vec2 _neighborBlocksMapVec : _neighborBlockPositions)
@@ -975,7 +959,7 @@ bool Stage::initWithLevel(int level)
 
 			if (groundTopY <= playerBottomY)
 			{
-				log("PY = %f", _player->getPosition().y);
+				log("size = %d", _neighborBlockPositions.size());
 				//壁乗りを封じる
 				for (Blocks* block : _allBlocks)
 				{
@@ -1026,6 +1010,7 @@ bool Stage::initWithLevel(int level)
 			//左右の衝突時に止める
 			else if (_neighborBlockPositions.size() == 1 || nowBlockVec.y <= playerMapVec.y)
 			{
+
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
 				{
 					_player->stopL = true;
@@ -1034,22 +1019,39 @@ bool Stage::initWithLevel(int level)
 				{
 					_player->stopR = true;
 				}
-
 			}
-
 		}
 
 		return true;
 	}; 
 
 	contactListener->onContactSeperate = [this](PhysicsContact&contact){
+		/**/
+		if (_neighborBlockPositions.size() > 0 && _player->magicFlag == true)
+		{
+			for (auto block : _allBlocks)
+			{
+				auto it = std::remove(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), block->getPosition());
+				if (it != _neighborBlockPositions.end())
+				{
+					_neighborBlockPositions.erase(_neighborBlockPositions.begin());
+				}
+			}
+		}
+		else if (_neighborBlockPositions.size() > 0)
+		{
+			_neighborBlockPositions.erase(_neighborBlockPositions.begin());
+		}
+		/*
+		//修正始める前のコード
 		if (_neighborBlockPositions.size() > 0)
 		{
 			_neighborBlockPositions.erase(_neighborBlockPositions.begin());
 		}
+		*/
+
 		if (_neighborBlockPositions.size() == 0)
 		{
-			//log("check");
 			_player->getPhysicsBody()->setGravityEnable(true);
 			setJumpFlag(false);
 			_player->stopL = false;
@@ -1156,6 +1158,7 @@ bool Stage::initWithLevel(int level)
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
 
+	/**/
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setPosition(Vec2(0,0));
 	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
