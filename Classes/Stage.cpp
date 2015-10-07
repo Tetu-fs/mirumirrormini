@@ -955,7 +955,11 @@ bool Stage::initWithLevel(int level)
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-			_neighborBlockPositions.push_back(nowBlockPosition);
+			bool isExist = std::find(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), nowBlockPosition) != _neighborBlockPositions.end();
+			if (!isExist) {
+				_neighborBlockPositions.push_back(nowBlockPosition);
+			}
+			//_neighborBlockPositions.push_back(nowBlockPosition);
 
 			if (groundTopY <= playerBottomY)
 			{
@@ -1031,11 +1035,11 @@ bool Stage::initWithLevel(int level)
 		{
 			for (auto block : _allBlocks)
 			{
-				auto it = std::remove(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), block->getPosition());
-				if (it != _neighborBlockPositions.end())
+				auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [block](Vec2 vec) 
 				{
-					_neighborBlockPositions.erase(_neighborBlockPositions.begin());
-				}
+					return vec != block->getPosition();
+				});
+				_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
 			}
 		}
 		else if (_neighborBlockPositions.size() > 0)
