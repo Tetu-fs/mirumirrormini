@@ -94,11 +94,11 @@ protected:
 	//現在たっているブロックのマップ座標
 	cocos2d::Vec2 _standBlockPosition;
 
-	//現在接触しているブロックの座標を格納する配列
-	std::vector<cocos2d::Vec2> _neighborBlockPositions;
+	//現在接触しているブロックを格納する配列
+	cocos2d::Vector<Blocks*> _neighborBlockPositions;
 
 	//反射ブロックを格納する配列
-	std::vector<Blocks*> _mirrorAbleBlocks;
+	cocos2d::Vector<Blocks*> _mirrorAbleBlocks;
 
 	//反射ブロックのマップ座標を格納する配列
 	std::vector<cocos2d::Vec2> _mirrorAblePositions;

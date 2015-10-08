@@ -219,6 +219,12 @@ void Stage::playerMove()
 							{
 								moveBlockX(mirrorBlock, mirrorPosition);
 							}
+							auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+							{
+								return blocks == mirrorBlock;
+							});
+							_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+
 						}
 						_mirrorAblePositions.clear();
 					}
@@ -233,11 +239,11 @@ void Stage::playerMove()
 					auto mainTransition = TransitionFade::create(1.0f, mainScene);
 					Director::getInstance()->replaceScene(mainTransition);
 				}
-				
+
 				else
 				{
 					experimental::AudioEngine::stop(mainBgmID);
-					
+
 					auto titleScene = TitleScene::createScene();
 					auto titleTransition = TransitionFade::create(1.0f, titleScene);
 					Director::getInstance()->replaceScene(titleTransition);
@@ -304,6 +310,11 @@ void Stage::playerMove()
 							{
 								moveBlockY(mirrorBlock, mirrorPosition);
 							}
+							auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+							{
+								return blocks == mirrorBlock;
+							});
+							_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
 
 						}
 						_mirrorAblePositions.clear();
@@ -337,6 +348,12 @@ void Stage::playerMove()
 								{
 									moveBlockY(mirrorBlock, mirrorPosition);
 								}
+								auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+								{
+									return blocks == mirrorBlock;
+								});
+								_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+
 							}
 
 						}
@@ -370,41 +387,53 @@ void Stage::playerMove()
 							{
 								moveBlockX(mirrorBlock, mirrorPosition);
 							}
-						}
-						_mirrorAblePositions.clear();
+							auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+							{
+								return blocks == mirrorBlock;
+							});
+							_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
 
+						}
 					}
+					_mirrorAblePositions.clear();
+
+				}
+			}
+
+			//右反射
+			if (keyCode == EventKeyboard::KeyCode::KEY_D)
+			{
+				_player->rightFlag = true;
+
+				if (getJumpFlag() == true)
+				{
+					_player->magicFlag = true;
+
+					Magic* sideMagic = _player->sideMirrorEffect();
+					this->setSideMagic(sideMagic);
+					_sideMagic->setPosition(_player->LRMagicPosition);
+					this->addChild(_sideMagic);
 				}
 
-				//右反射
-				if (keyCode == EventKeyboard::KeyCode::KEY_D)
+				for (Blocks* mirrorBlock : _mirrorAbleBlocks)
 				{
-					_player->rightFlag = true;
+					_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
 
-					if (getJumpFlag() == true)
+					if (_player->magicFlag == true)
 					{
-						_player->magicFlag = true;
-
-						Magic* sideMagic = _player->sideMirrorEffect();
-						this->setSideMagic(sideMagic);
-						_sideMagic->setPosition(_player->LRMagicPosition);
-						this->addChild(_sideMagic);
-					}
-
-					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-					{
-						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
-						if (_player->magicFlag == true)
+						for (Vec2 mirrorPosition : _mirrorAblePositions)
 						{
-							for (Vec2 mirrorPosition : _mirrorAblePositions)
-							{
-								moveBlockX(mirrorBlock, mirrorPosition);
-							}
+							moveBlockX(mirrorBlock, mirrorPosition);
 						}
-						_mirrorAblePositions.clear();
-
+						auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+						{
+							return blocks == mirrorBlock;
+						});
+						_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+						
 					}
+					_mirrorAblePositions.clear();
+
 				}
 			}
 		}
@@ -550,24 +579,24 @@ void Stage::checkStop()
 
 	if (_player->rightFlag == true)
 	{
-		for (Vec2 checkR : _neighborBlockPositions)
+		for (Blocks* checkR : _neighborBlockPositions)
 		{
-			if (playerMapVec.y >= BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
+			if (playerMapVec.y >= BlockVecConvert(checkR->getPosition()).y && playerMapVec.x + 1 == BlockVecConvert(checkR->getPosition()).x)
 			{
-				testBlock->setPosition(checkR);
+				testBlock->setPosition(checkR->getPosition());
 				_player->stopR = true;
 				break;
 			}
-			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkR).y && playerMapVec.x + 1 == BlockVecConvert(checkR).x)
+			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkR->getPosition()).y && playerMapVec.x + 1 == BlockVecConvert(checkR->getPosition()).x)
 			{
-				testBlock->setPosition(checkR);
+				testBlock->setPosition(checkR->getPosition());
 
 				_player->stopR = true;
 				break;
 			}
 			for (Blocks* allblock : _allBlocks)
 			{
-				if (_player->stopR == true && checkR != allblock->getPosition())
+				if (_player->stopR == true && checkR->getPosition() != allblock->getPosition())
 				{
 				testBlock->setPosition(StageVecConvert(_standBlockPosition));
 
@@ -579,18 +608,18 @@ void Stage::checkStop()
 	else if (_player->rightFlag == false)
 	{
 
-		for (Vec2 checkL : _neighborBlockPositions)
+		for (Blocks* checkL : _neighborBlockPositions)
 		{
-			if (playerMapVec.y >= BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
+			if (playerMapVec.y >= BlockVecConvert(checkL->getPosition()).y && playerMapVec.x - 1 == BlockVecConvert(checkL->getPosition()).x)
 			{
-				testBlock->setPosition(checkL);
+				testBlock->setPosition(checkL->getPosition());
 
 				_player->stopL = true;
 				break;
 			}
-			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkL).y && playerMapVec.x - 1 == BlockVecConvert(checkL).x)
+			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkL->getPosition()).y && playerMapVec.x - 1 == BlockVecConvert(checkL->getPosition()).x)
 			{
-				testBlock->setPosition(checkL);
+				testBlock->setPosition(checkL->getPosition());
 
 				_player->stopL = true;
 				break;
@@ -645,6 +674,9 @@ void Stage::update(float dt)
 	}
 	if (_state == GameState::PLAYING)
 	{
+		if (_neighborBlockPositions.size() > 0){
+		testBlock->setPosition(_neighborBlockPositions.back()->getPosition());
+		}
 		auto flip = FlipX::create(true);
 		auto flipback = FlipX::create(false);
 		//左右の向き
@@ -738,7 +770,7 @@ void Stage::update(float dt)
 		}
 
 		//壁に衝突した際に動きを止める
-		checkStop();
+		//checkStop();
 		if (_player->stopL == true)
 		{
 			if (_velocity.x < 0)
@@ -767,14 +799,14 @@ void Stage::update(float dt)
 		if (getJumpFlag() == true && wallFlag == false
 			&& _prevPosition.y != _player->getPosition().y)
 		{
-			for (Vec2 point : _neighborBlockPositions)
+			for (Blocks* point : _neighborBlockPositions)
 			{
 				Rect playerRect = _player->getBoundingBox();
-				Rect blockRect = Rect(point.x - MAPCHIP_SIZE / 2, point.y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
+				Rect blockRect = Rect(point->getPosition().x - MAPCHIP_SIZE / 2, point->getPosition().y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
 				if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 				{
-					_standBlockPosition = BlockVecConvert(point);
-					_player->setPositionY(point.y + (MAPCHIP_SIZE / 2) + 12);
+					_standBlockPosition = BlockVecConvert(point->getPosition());
+					_player->setPositionY(point->getPosition().y + (MAPCHIP_SIZE / 2) + 12);
 				
 					if (_player->rightFlag == true)
 					{
@@ -799,10 +831,10 @@ void Stage::update(float dt)
 			}			
 		}
 		//ゴールフラグ
-		for (Vec2 _neighborBlocksMapVec : _neighborBlockPositions)
+		for (Blocks* _neighborBlocksMapVec : _neighborBlockPositions)
 		{
 
-			Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocksMapVec);
+			Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocksMapVec->getPosition());
 			if (getJumpFlag() == true && Vec2(playerMapVec.x, playerMapVec.y + 1) == neighborBlockMapVec
 				&& Vec2(_standBlockPosition.x, _standBlockPosition.y - 1) == goalVec)
 			{
@@ -817,7 +849,6 @@ void Stage::update(float dt)
 		//ゴール判定
 		if (goalFlag == true)
 		{
-
 
 			if (static_cast<int>(_playerPosition.y) == static_cast<int>(_prevPosition.y))
 			{
@@ -935,7 +966,12 @@ bool Stage::initWithLevel(int level)
 		PhysicsShape* ground = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
 		
 		Node* groundNode = ground->getBody()->getNode();
-		nowBlockPosition = groundNode->getPosition();
+		
+		//NodeをBlocks*にダウンキャスト
+		Blocks *_neighborBlock = dynamic_cast<Blocks *>(groundNode);
+		if (_neighborBlock != nullptr) {}
+
+		nowBlockPosition = _neighborBlock->getPosition();
 		//log("%f", worldPos.x);
 
 		auto nowBlockVec = BlockVecConvert(nowBlockPosition);
@@ -955,9 +991,10 @@ bool Stage::initWithLevel(int level)
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-			bool isExist = std::find(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), nowBlockPosition) != _neighborBlockPositions.end();
+			// std::find(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), nowBlockPosition) != _neighborBlockPositions.end();
+			bool isExist = _neighborBlockPositions.contains(_neighborBlock);
 			if (!isExist) {
-				_neighborBlockPositions.push_back(nowBlockPosition);
+				_neighborBlockPositions.pushBack(_neighborBlock);
 			}
 			//_neighborBlockPositions.push_back(nowBlockPosition);
 
@@ -968,10 +1005,10 @@ bool Stage::initWithLevel(int level)
 				for (Blocks* block : _allBlocks)
 				{
 
-					for (Vec2 _neighborBlocksMapVec : _neighborBlockPositions)
+					for (Blocks* _neighborBlocks : _neighborBlockPositions)
 					{
 
-						Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocksMapVec);
+						Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocks->getPosition());
 						Vec2 convertBlockMapVec = BlockVecConvert(block->getPosition());
 
 						//もしプレイヤーの真下にブロックがない
@@ -979,20 +1016,20 @@ bool Stage::initWithLevel(int level)
 						{
 
 							//if (_player->stopL == true)
-							if (_neighborBlockPositions.back() == StageVecConvert(Vec2(playerMapVec.x - 1, playerMapVec.y + 1))
+							if (_neighborBlockPositions.back()->getPosition() == StageVecConvert(Vec2(playerMapVec.x - 1, playerMapVec.y + 1))
 								&& _player->stopL == true)
 							{
-								if (_neighborBlockPositions.back() == block->getPosition())
+								if (_neighborBlockPositions.back()->getPosition() == block->getPosition())
 								{
 									_player->getPhysicsBody()->setVelocity(Vec2(0, -18));
 									_player->getPhysicsBody()->setGravityEnable(true);
 									wallFlag = true;
 								}
 							}
-							else if (_neighborBlockPositions.back() == StageVecConvert(Vec2(playerMapVec.x + 1, playerMapVec.y + 1))
+							else if (_neighborBlockPositions.back()->getPosition() == StageVecConvert(Vec2(playerMapVec.x + 1, playerMapVec.y + 1))
 								&& _player->stopR == true)
 							{
-								if (_neighborBlockPositions.back() == block->getPosition())
+								if (_neighborBlockPositions.back()->getPosition() == block->getPosition())
 								{
 									_player->getPhysicsBody()->setVelocity(Vec2(0, -18));
 									_player->getPhysicsBody()->setGravityEnable(true);
@@ -1012,7 +1049,7 @@ bool Stage::initWithLevel(int level)
 				}
 			}
 			//左右の衝突時に止める
-			else if (_neighborBlockPositions.size() == 1 || nowBlockVec.y <= playerMapVec.y)
+			else if (nowBlockVec.y <= playerMapVec.y)
 			{
 
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
@@ -1030,30 +1067,23 @@ bool Stage::initWithLevel(int level)
 	}; 
 
 	contactListener->onContactSeperate = [this](PhysicsContact&contact){
-		/**/
-		if (_neighborBlockPositions.size() > 0 && _player->magicFlag == true)
+		
+		if (_neighborBlockPositions.size() > 0 && _player->magicFlag == false)
 		{
-			for (auto block : _allBlocks)
+			/*
+			//比較参照した場合の削除　の参考
+			auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
 			{
-				auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [block](Vec2 vec) 
-				{
-					return vec != block->getPosition();
-				});
+				return blocks == mirrorBlock;
+			});
+			if (*it == mirrorBlock){
 				_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
 			}
-		}
-		else if (_neighborBlockPositions.size() > 0)
-		{
+			*/
+			//とりあえずあってもなくても最悪な挙動する一行
 			_neighborBlockPositions.erase(_neighborBlockPositions.begin());
-		}
-		/*
-		//修正始める前のコード
-		if (_neighborBlockPositions.size() > 0)
-		{
-			_neighborBlockPositions.erase(_neighborBlockPositions.begin());
-		}
-		*/
 
+		}
 		if (_neighborBlockPositions.size() == 0)
 		{
 			_player->getPhysicsBody()->setGravityEnable(true);
@@ -1130,7 +1160,7 @@ bool Stage::initWithLevel(int level)
 				if (tileID == 4)
 				{
 					_blockGen->setLocalZOrder(5);
-					_mirrorAbleBlocks.push_back(_blockGen);
+					_mirrorAbleBlocks.pushBack(_blockGen);
 				}
 				if (tileID == 10)
 				{
