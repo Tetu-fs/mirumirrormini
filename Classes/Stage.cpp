@@ -219,11 +219,11 @@ void Stage::playerMove()
 							{
 								moveBlockX(mirrorBlock, mirrorPosition);
 							}
-							auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+							auto it = std::remove_if(_neighborBlocks.begin(), _neighborBlocks.end(), [mirrorBlock](Blocks* blocks)
 							{
 								return blocks == mirrorBlock;
 							});
-							_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+							_neighborBlocks.erase(it, _neighborBlocks.end());
 
 						}
 						_mirrorAblePositions.clear();
@@ -310,11 +310,11 @@ void Stage::playerMove()
 							{
 								moveBlockY(mirrorBlock, mirrorPosition);
 							}
-							auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+							auto it = std::remove_if(_neighborBlocks.begin(), _neighborBlocks.end(), [mirrorBlock](Blocks* blocks)
 							{
 								return blocks == mirrorBlock;
 							});
-							_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+							_neighborBlocks.erase(it, _neighborBlocks.end());
 
 						}
 						_mirrorAblePositions.clear();
@@ -348,11 +348,11 @@ void Stage::playerMove()
 								{
 									moveBlockY(mirrorBlock, mirrorPosition);
 								}
-								auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+								auto it = std::remove_if(_neighborBlocks.begin(), _neighborBlocks.end(), [mirrorBlock](Blocks* blocks)
 								{
 									return blocks == mirrorBlock;
 								});
-								_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+								_neighborBlocks.erase(it, _neighborBlocks.end());
 
 							}
 
@@ -387,16 +387,15 @@ void Stage::playerMove()
 							{
 								moveBlockX(mirrorBlock, mirrorPosition);
 							}
-							auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+							auto it = std::remove_if(_neighborBlocks.begin(), _neighborBlocks.end(), [mirrorBlock](Blocks* blocks)
 							{
 								return blocks == mirrorBlock;
 							});
-							_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+							_neighborBlocks.erase(it, _neighborBlocks.end());
 
 						}
+						_mirrorAblePositions.clear();
 					}
-					_mirrorAblePositions.clear();
-
 				}
 			}
 
@@ -425,11 +424,11 @@ void Stage::playerMove()
 						{
 							moveBlockX(mirrorBlock, mirrorPosition);
 						}
-						auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
+						auto it = std::remove_if(_neighborBlocks.begin(), _neighborBlocks.end(), [mirrorBlock](Blocks* blocks)
 						{
 							return blocks == mirrorBlock;
 						});
-						_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
+						_neighborBlocks.erase(it, _neighborBlocks.end());
 						
 					}
 					_mirrorAblePositions.clear();
@@ -494,7 +493,7 @@ Blocks* Stage::BlockGen(int gid)
 	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9 || gid == 12 || gid == 13){
 	auto category = 1;
 	Point box[4]{Point(-8, -8), Point(-8, 8), Point(8, 8), Point(8, -8)};
-	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material,0.5);
+	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material,1.0);
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
 	physicsBody->setCollisionBitmask(static_cast<int>(TileType::AIR));
@@ -510,7 +509,6 @@ Blocks* Stage::BlockGen(int gid)
 	rectY = (int)((gid - 1) / X_MAX);
 
 	blockGen->setTextureRect(Rect(rectX * MAPCHIP_SIZE, rectY * MAPCHIP_SIZE, MAPCHIP_SIZE, MAPCHIP_SIZE));
-
 
 	auto blockRect = blockGen->getBoundingBox();
 
@@ -579,17 +577,15 @@ void Stage::checkStop()
 
 	if (_player->rightFlag == true)
 	{
-		for (Blocks* checkR : _neighborBlockPositions)
+		for (Blocks* checkR : _neighborBlocks)
 		{
 			if (playerMapVec.y >= BlockVecConvert(checkR->getPosition()).y && playerMapVec.x + 1 == BlockVecConvert(checkR->getPosition()).x)
 			{
-				testBlock->setPosition(checkR->getPosition());
 				_player->stopR = true;
 				break;
 			}
 			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkR->getPosition()).y && playerMapVec.x + 1 == BlockVecConvert(checkR->getPosition()).x)
 			{
-				testBlock->setPosition(checkR->getPosition());
 
 				_player->stopR = true;
 				break;
@@ -598,7 +594,6 @@ void Stage::checkStop()
 			{
 				if (_player->stopR == true && checkR->getPosition() != allblock->getPosition())
 				{
-				testBlock->setPosition(StageVecConvert(_standBlockPosition));
 
 				_player->stopR = false;
 				}
@@ -608,26 +603,20 @@ void Stage::checkStop()
 	else if (_player->rightFlag == false)
 	{
 
-		for (Blocks* checkL : _neighborBlockPositions)
+		for (Blocks* checkL : _neighborBlocks)
 		{
 			if (playerMapVec.y >= BlockVecConvert(checkL->getPosition()).y && playerMapVec.x - 1 == BlockVecConvert(checkL->getPosition()).x)
 			{
-				testBlock->setPosition(checkL->getPosition());
-
 				_player->stopL = true;
 				break;
 			}
 			else if (getJumpFlag() == false && playerMapVec.y < BlockVecConvert(checkL->getPosition()).y && playerMapVec.x - 1 == BlockVecConvert(checkL->getPosition()).x)
 			{
-				testBlock->setPosition(checkL->getPosition());
-
 				_player->stopL = true;
 				break;
 			}
 			else
 			{
-				testBlock->setPosition(_standBlockPosition);
-
 				_player->stopL = false;
 			}
 		}
@@ -674,9 +663,6 @@ void Stage::update(float dt)
 	}
 	if (_state == GameState::PLAYING)
 	{
-		if (_neighborBlockPositions.size() > 0){
-		testBlock->setPosition(_neighborBlockPositions.back()->getPosition());
-		}
 		auto flip = FlipX::create(true);
 		auto flipback = FlipX::create(false);
 		//左右の向き
@@ -799,14 +785,13 @@ void Stage::update(float dt)
 		if (getJumpFlag() == true && wallFlag == false
 			&& _prevPosition.y != _player->getPosition().y)
 		{
-			for (Blocks* point : _neighborBlockPositions)
+			for (Blocks* point : _neighborBlocks)
 			{
 				Rect playerRect = _player->getBoundingBox();
 				Rect blockRect = Rect(point->getPosition().x - MAPCHIP_SIZE / 2, point->getPosition().y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
 				if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 				{
 					_standBlockPosition = BlockVecConvert(point->getPosition());
-					_player->setPositionY(point->getPosition().y + (MAPCHIP_SIZE / 2) + 12);
 				
 					if (_player->rightFlag == true)
 					{
@@ -831,7 +816,7 @@ void Stage::update(float dt)
 			}			
 		}
 		//ゴールフラグ
-		for (Blocks* _neighborBlocksMapVec : _neighborBlockPositions)
+		for (Blocks* _neighborBlocksMapVec : _neighborBlocks)
 		{
 
 			Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocksMapVec->getPosition());
@@ -902,7 +887,7 @@ void Stage::update(float dt)
 				setJumpFlag(false);
 				_player->playAnimation(3);
 			}
-			//else if (_neighborBlockPositions.size() > 0)
+			//else if (!_neighborBlocks.empty())
 			//{setJumpFlag(true); }
 
 			_prevPosition = _playerPosition;
@@ -969,7 +954,10 @@ bool Stage::initWithLevel(int level)
 		
 		//NodeをBlocks*にダウンキャスト
 		Blocks *_neighborBlock = dynamic_cast<Blocks *>(groundNode);
-		if (_neighborBlock != nullptr) {}
+		if (_neighborBlock != nullptr) 
+		{
+			//なんもしない
+		}
 
 		nowBlockPosition = _neighborBlock->getPosition();
 		//log("%f", worldPos.x);
@@ -991,24 +979,22 @@ bool Stage::initWithLevel(int level)
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-			// std::find(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), nowBlockPosition) != _neighborBlockPositions.end();
-			bool isExist = _neighborBlockPositions.contains(_neighborBlock);
-			if (!isExist) {
-				_neighborBlockPositions.pushBack(_neighborBlock);
-			}
-			//_neighborBlockPositions.push_back(nowBlockPosition);
-
+			// std::find(_neighborBlocks.begin(), _neighborBlocks.end(), nowBlockPosition) != _neighborBlocks.end();
+			bool isExist = _neighborBlocks.contains(_neighborBlock);
+			if (!isExist){}
+			_neighborBlocks.pushBack(_neighborBlock);
+			testBlock->setPosition(nowBlockPosition);
 			if (groundTopY <= playerBottomY)
 			{
-				log("size = %d", _neighborBlockPositions.size());
+				//log("size = %d", _neighborBlocks.size());
 				//壁乗りを封じる
 				for (Blocks* block : _allBlocks)
 				{
 
-					for (Blocks* _neighborBlocks : _neighborBlockPositions)
+					for (Blocks* neighborBlocks : _neighborBlocks)
 					{
 
-						Vec2 neighborBlockMapVec = BlockVecConvert(_neighborBlocks->getPosition());
+						Vec2 neighborBlockMapVec = BlockVecConvert(neighborBlocks->getPosition());
 						Vec2 convertBlockMapVec = BlockVecConvert(block->getPosition());
 
 						//もしプレイヤーの真下にブロックがない
@@ -1016,20 +1002,20 @@ bool Stage::initWithLevel(int level)
 						{
 
 							//if (_player->stopL == true)
-							if (_neighborBlockPositions.back()->getPosition() == StageVecConvert(Vec2(playerMapVec.x - 1, playerMapVec.y + 1))
+							if (_neighborBlocks.back()->getPosition() == StageVecConvert(Vec2(playerMapVec.x - 1, playerMapVec.y + 1))
 								&& _player->stopL == true)
 							{
-								if (_neighborBlockPositions.back()->getPosition() == block->getPosition())
+								if (_neighborBlocks.back()->getPosition() == block->getPosition())
 								{
 									_player->getPhysicsBody()->setVelocity(Vec2(0, -18));
 									_player->getPhysicsBody()->setGravityEnable(true);
 									wallFlag = true;
 								}
 							}
-							else if (_neighborBlockPositions.back()->getPosition() == StageVecConvert(Vec2(playerMapVec.x + 1, playerMapVec.y + 1))
+							else if (_neighborBlocks.back()->getPosition() == StageVecConvert(Vec2(playerMapVec.x + 1, playerMapVec.y + 1))
 								&& _player->stopR == true)
 							{
-								if (_neighborBlockPositions.back()->getPosition() == block->getPosition())
+								if (_neighborBlocks.back()->getPosition() == block->getPosition())
 								{
 									_player->getPhysicsBody()->setVelocity(Vec2(0, -18));
 									_player->getPhysicsBody()->setGravityEnable(true);
@@ -1043,6 +1029,8 @@ bool Stage::initWithLevel(int level)
 							setJumpFlag(true);
 							_player->getPhysicsBody()->setGravityEnable(false);
 							_player->getPhysicsBody()->setVelocity(Vec2(0, 0));
+							_player->setPositionY(neighborBlocks->getPosition().y + (MAPCHIP_SIZE / 2) + 12);
+
 							wallFlag = false;
 						}
 					}
@@ -1067,24 +1055,26 @@ bool Stage::initWithLevel(int level)
 	}; 
 
 	contactListener->onContactSeperate = [this](PhysicsContact&contact){
-		
-		if (_neighborBlockPositions.size() > 0 && _player->magicFlag == false)
-		{
-			/*
-			//比較参照した場合の削除　の参考
-			auto it = std::remove_if(_neighborBlockPositions.begin(), _neighborBlockPositions.end(), [mirrorBlock](Blocks* blocks)
-			{
-				return blocks == mirrorBlock;
-			});
-			if (*it == mirrorBlock){
-				_neighborBlockPositions.erase(it, _neighborBlockPositions.end());
-			}
-			*/
-			//とりあえずあってもなくても最悪な挙動する一行
-			_neighborBlockPositions.erase(_neighborBlockPositions.begin());
 
+		//プレイヤーではない方を抽出
+		PhysicsShape* ground = contact.getShapeA()->getBody() == _player->getPhysicsBody() ? contact.getShapeB() : contact.getShapeA();
+		Node* groundNode = ground->getBody()->getNode();
+
+		//NodeをBlocks*にダウンキャスト
+		Blocks * outBlock = dynamic_cast<Blocks *>(groundNode);
+		if (outBlock != nullptr)
+		{
+			//なんもしない
 		}
-		if (_neighborBlockPositions.size() == 0)
+		if (outBlock != nullptr)
+		{
+			if (_neighborBlocks.contains(outBlock))
+			{
+				_neighborBlocks.eraseObject(outBlock);
+			}
+		}
+	
+		if (_neighborBlocks.empty())
 		{
 			_player->getPhysicsBody()->setGravityEnable(true);
 			setJumpFlag(false);

@@ -95,7 +95,7 @@ protected:
 	cocos2d::Vec2 _standBlockPosition;
 
 	//現在接触しているブロックを格納する配列
-	cocos2d::Vector<Blocks*> _neighborBlockPositions;
+	cocos2d::Vector<Blocks*> _neighborBlocks;
 
 	//反射ブロックを格納する配列
 	cocos2d::Vector<Blocks*> _mirrorAbleBlocks;
