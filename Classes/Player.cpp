@@ -22,9 +22,6 @@ bool Player::init()
 	{
 		return false;
 	}
-
-
-
 	Point PBox[8]{Point(-2, -12), Point(-4, -10), Point(-4, -2), Point(-2, 0), Point(2, 0), Point(4, -2), Point(4, -10), Point(2, -12)};
 	//Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
 
@@ -50,25 +47,47 @@ bool Player::init()
 	return true;
 }
 
-
+/*
 Magic* Player::upDownMirrorEffect()
 {
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteUpScale = 244;
-	float whiteDownScale = -244;
-
 	magic->setScaleX(16 * 24);
+
+	ScaleTo* whiteUpScale = ScaleTo::create(0.2, 384, winSize.height);
+	ScaleTo* whiteDownScale = ScaleTo::create(0.2, 384, this->getPositionY()-winSize.height);
+	MoveTo* goUp = MoveTo::create(0.2, Vec2(0, winSize.height));
+	MoveTo* goDown = MoveTo::create(0.2, Vec2(0, -winSize.height));
+	Sequence* upMagic = Sequence::create(whiteUpScale, goUp, RemoveSelf::create(), NULL);
+	Sequence* downMagic = Sequence::create(whiteDownScale, goDown, RemoveSelf::create(), NULL);
+
+	auto clipping = ClippingNode::create();
+	clipping->setStencil(magic);
+	clipping->setInverted(false);
+	clipping->setAlphaThreshold(1.0);
+	addChild(clipping);
 
 	if (upFlag == true)
 	{
-		magic->setScaleY(whiteUpScale);
+		magic->runAction(upMagic);
+
+		auto reflex = Sprite::create("graphics/reflex.png");
+		reflex->getTexture()->setAliasTexParameters();
+		reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+
+		clipping->addChild(reflex);
 	}
 
 	else
 	{
-		magic->setScaleY(whiteDownScale);
+		magic->runAction(downMagic);
+
+		auto reflex = Sprite::create("graphics/reflex.png");
+		reflex->getTexture()->setAliasTexParameters();
+		reflex->setAnchorPoint(Vec2::ANCHOR_TOP_LEFT);
+
+		clipping->addChild(reflex);
 	}
 
 	return magic;
@@ -79,24 +98,53 @@ Magic* Player::sideMirrorEffect()
 	Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteRightScale = 384;
-	float whiteLeftScale = -384;
-
 	magic->setScaleY(16 * 14);
+
+	ScaleTo* whiteRightScale = ScaleTo::create(0.2, winSize.width, 244);
+	ScaleTo* whiteLeftScale = ScaleTo::create(0.2, this->getPositionX() - winSize.width, 244);
+	MoveTo* goRight = MoveTo::create(0.2, Vec2(winSize.width, 0));
+	MoveTo* goLeft = MoveTo::create(0.2, Vec2(-winSize.width, 0));
+	Sequence* RightMagic = Sequence::create(whiteRightScale, goRight, RemoveSelf::create(), NULL);
+	Sequence* LeftMagic = Sequence::create(whiteLeftScale, goLeft, RemoveSelf::create(), NULL);
+
+	auto flip = FlipX::create(true);
+	auto flipback = FlipX::create(false);
+	Sequence* LreflexMove = Sequence::create(flip,DelayTime::create(0.1), goLeft, RemoveSelf::create(), NULL);
+	Sequence* RreflexMove = Sequence::create(flipback, DelayTime::create(0.1), goRight, RemoveSelf::create(), NULL);
+
+	auto clipping = ClippingNode::create();
+	clipping->setStencil(magic);
+	clipping->setInverted(false);
+	clipping->setAlphaThreshold(1.0);
+	addChild(clipping);
 
 	if (rightFlag == true)
 	{
-		magic->setScaleX(whiteRightScale);
+		magic->runAction(RightMagic);
+
+		auto reflex = Sprite::create("graphics/reflex.png");
+		reflex->getTexture()->setAliasTexParameters();
+		reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+		reflex->runAction(RreflexMove);
+
+		clipping->addChild(reflex);
 	}
 
 	else
 	{
-		magic->setScaleX(whiteLeftScale);
+		magic->runAction(LeftMagic);
+
+		auto reflex = Sprite::create("graphics/reflex.png");
+		reflex->getTexture()->setAliasTexParameters();
+		reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_RIGHT);
+		reflex->runAction(LreflexMove);
+
+		clipping->addChild(reflex);
 	}
 
 	return magic;
 }
-
+*/
 // 0~2のアニメーションを再生するメソッド(0通常、1上、2下)
 //void型のPlayer::playAnimation(int index)関数を作成
 void Player::playAnimation(int index)

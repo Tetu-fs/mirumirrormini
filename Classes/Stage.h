@@ -7,6 +7,7 @@
 #include "AudioEngine.h"
 
 #include "Player.h"
+#include "Magic.h"
 #include "Blocks.h"
 
 
@@ -144,8 +145,13 @@ public:
 
 	void update(float dt) override;
 
-	//横反射のエフェクト用のメソッド
+	Magic* magic;
+
+	//反射のエフェクト用のメソッド
 	Magic* sideMirrorEffect();
+	Magic* upDownMirrorEffect();
+
+
 	//gidによってタイルを切り出し表示するメソッド
 	Blocks* BlockGen(int gid);
 
@@ -160,6 +166,7 @@ public:
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CC_SYNTHESIZE_RETAIN(Blocks*, _blocks, Blocks);
 	CC_SYNTHESIZE(GameState, _state, State);
+
 	static Stage* createWithLevel(int level);
 	void moveBlockX(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
 	void moveBlockY(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);

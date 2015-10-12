@@ -155,6 +155,106 @@ void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 	playerDiffPositions.clear();
 }
 
+Magic* Stage::upDownMirrorEffect()
+{
+	Size winSize = Director::getInstance()->getWinSize();
+
+	magic = Magic::create();
+	magic->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
+	//magic->setScaleY(2);
+	magic->setScaleX(0.25);
+	ScaleTo* whiteUpScale = ScaleTo::create(0.2, 1, 1);
+	ScaleTo* whiteDownScale = ScaleTo::create(0.2, 1, 1);
+	MoveTo* goUp = MoveTo::create(0.2, Vec2(winSize.width/2, winSize.height));
+	MoveTo* goDown = MoveTo::create(0.2, Vec2(winSize.width / 2, -winSize.height));
+	Sequence* upMagic = Sequence::create(whiteUpScale, goUp, RemoveSelf::create(), NULL);
+	Sequence* downMagic = Sequence::create(whiteDownScale, goDown, RemoveSelf::create(), NULL);
+	
+	MoveTo* goRight = MoveTo::create(0.1, Vec2(winSize.width, 0));
+
+	Sequence* UpDownreflexMove = Sequence::create(DelayTime::create(0.1), goRight, RemoveSelf::create(), NULL);
+	auto clipping = ClippingNode::create();
+	clipping->setStencil(magic);
+	clipping->setInverted(false);
+	clipping->setAlphaThreshold(1.0);
+	this->addChild(clipping);
+
+	auto reflex = Sprite::create("graphics/reflex.png");
+	reflex->getTexture()->setAliasTexParameters();
+	reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	reflex->runAction(UpDownreflexMove);
+
+	clipping->addChild(reflex);
+	log("%f", reflex->getPositionY());
+
+	if (_player->upFlag == true)
+	{
+		magic->setRotation(-90);
+		magic->runAction(upMagic);
+
+	}
+
+	else
+	{
+		magic->setRotation(90);
+
+		magic->runAction(downMagic);
+
+	}
+
+	return magic;
+}
+
+Magic* Stage::sideMirrorEffect()
+{
+	Size winSize = Director::getInstance()->getWinSize();
+	magic = Magic::create();
+
+	auto flip = FlipX::create(true);
+	auto flipback = FlipX::create(false);
+	ScaleTo* whiteScale = ScaleTo::create(0.2, 2, 1);
+	MoveTo* goRight = MoveTo::create(0.2, Vec2(winSize.width, 0));
+	MoveTo* goLeft = MoveTo::create(0.2, Vec2(-winSize.width, 0));
+	Sequence* RightMagic = Sequence::create(flipback, whiteScale, goRight, RemoveSelf::create(), NULL);
+	Sequence* LeftMagic = Sequence::create(flip, whiteScale, goLeft, RemoveSelf::create(), NULL);
+
+	Sequence* LreflexMove = Sequence::create(flip, DelayTime::create(0.1), goLeft, RemoveSelf::create(), NULL);
+	Sequence* RreflexMove = Sequence::create(flipback, DelayTime::create(0.1), goRight, RemoveSelf::create(), NULL);
+
+	auto clipping = ClippingNode::create();
+	clipping->setStencil(magic);
+	clipping->setInverted(false);
+	clipping->setAlphaThreshold(1.0);
+
+	this->addChild(clipping);
+
+	auto reflex = Sprite::create("graphics/reflex.png");
+	reflex->getTexture()->setAliasTexParameters();
+	reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	reflex->setPosition(Vec2::ZERO);
+	clipping->addChild(reflex);
+
+	if (_player->rightFlag == true)
+	{
+		magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+
+		magic->runAction(RightMagic);
+
+		reflex->runAction(RreflexMove);
+	}
+
+	else
+	{
+		magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_RIGHT);
+
+		magic->runAction(LeftMagic);
+
+		reflex->runAction(LreflexMove);
+	}
+
+	return magic;
+}
+
 //プレイヤーの操作
 void Stage::playerMove()
 {
@@ -191,7 +291,6 @@ void Stage::playerMove()
 		auto flip = FlipX::create(true);
 		auto flipback = FlipX::create(false);
 
-
 		//もし押されたキーがスペースだったら
 		if (keyCode == EventKeyboard::KeyCode::KEY_SPACE)
 		{
@@ -203,7 +302,7 @@ void Stage::playerMove()
 					if (getJumpFlag() == true)
 					{
 						_player->magicFlag = true;
-						Magic* sideMagic = _player->sideMirrorEffect();
+						Magic* sideMagic = sideMirrorEffect();
 						this->setSideMagic(sideMagic);
 						_sideMagic->setPosition(_player->LRMagicPosition);
 						this->addChild(_sideMagic);
@@ -294,7 +393,7 @@ void Stage::playerMove()
 					if (getJumpFlag() == true)
 					{
 						_player->magicFlag = true;
-						Magic* upMagic = _player->upDownMirrorEffect();
+						Magic* upMagic = upDownMirrorEffect();
 						this->setUpDownMagic(upMagic);
 						_upDownMagic->setPosition(_player->UDMagicPosition);
 						this->addChild(_upDownMagic);
@@ -330,7 +429,7 @@ void Stage::playerMove()
 					if (getJumpFlag() == true)
 					{
 						_player->magicFlag = true;
-						Magic* upMagic = _player->upDownMirrorEffect();
+						Magic* upMagic = upDownMirrorEffect();
 						this->setUpDownMagic(upMagic);
 						_upDownMagic->setPosition(_player->UDMagicPosition);
 						this->addChild(_upDownMagic);
@@ -370,16 +469,16 @@ void Stage::playerMove()
 					{
 						_player->magicFlag = true;
 
-						Magic* sideMagic = _player->sideMirrorEffect();
+						Magic* sideMagic = sideMirrorEffect();
 						this->setSideMagic(sideMagic);
 						_sideMagic->setPosition(_player->LRMagicPosition);
+
 						this->addChild(_sideMagic);
 					}
 
 					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
 					{
 						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
 
 						if (_player->magicFlag == true)
 						{
@@ -397,42 +496,44 @@ void Stage::playerMove()
 						_mirrorAblePositions.clear();
 					}
 				}
-			}
 
-			//右反射
-			if (keyCode == EventKeyboard::KeyCode::KEY_D)
-			{
-				_player->rightFlag = true;
 
-				if (getJumpFlag() == true)
+				//右反射
+				if (keyCode == EventKeyboard::KeyCode::KEY_D)
 				{
-					_player->magicFlag = true;
+					_player->rightFlag = true;
 
-					Magic* sideMagic = _player->sideMirrorEffect();
-					this->setSideMagic(sideMagic);
-					_sideMagic->setPosition(_player->LRMagicPosition);
-					this->addChild(_sideMagic);
-				}
-
-				for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-				{
-					_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
-
-					if (_player->magicFlag == true)
+					if (getJumpFlag() == true)
 					{
-						for (Vec2 mirrorPosition : _mirrorAblePositions)
-						{
-							moveBlockX(mirrorBlock, mirrorPosition);
-						}
-						auto it = std::remove_if(_neighborBlocks.begin(), _neighborBlocks.end(), [mirrorBlock](Blocks* blocks)
-						{
-							return blocks == mirrorBlock;
-						});
-						_neighborBlocks.erase(it, _neighborBlocks.end());
-						
-					}
-					_mirrorAblePositions.clear();
+						_player->magicFlag = true;
 
+						Magic* sideMagic = sideMirrorEffect();
+						this->setSideMagic(sideMagic);
+						_sideMagic->setPosition(_player->LRMagicPosition);
+
+						this->addChild(_sideMagic);
+
+					}
+
+					for (Blocks* mirrorBlock : _mirrorAbleBlocks)
+					{
+						_mirrorAblePositions.push_back(BlockVecConvert(mirrorBlock->getPosition()));
+
+						if (_player->magicFlag == true)
+						{
+							for (Vec2 mirrorPosition : _mirrorAblePositions)
+							{
+								moveBlockX(mirrorBlock, mirrorPosition);
+							}
+							auto it = std::remove_if(_neighborBlocks.begin(), _neighborBlocks.end(), [mirrorBlock](Blocks* blocks)
+							{
+								return blocks == mirrorBlock;
+							});
+							_neighborBlocks.erase(it, _neighborBlocks.end());
+
+						}
+						_mirrorAblePositions.clear();
+					}
 				}
 			}
 		}
@@ -805,12 +906,15 @@ void Stage::update(float dt)
 
 					if (_player->upFlag == true)
 					{
+						_player->UDMagicPosition = Vec2(winSize.width/2, blockRect.getMaxY());
+						testBlock->setPosition(_player->UDMagicPosition);
 
-						_player->UDMagicPosition = Vec2(0, blockRect.getMinY());
 					}
 					else
 					{
-						_player->UDMagicPosition = Vec2(0, blockRect.getMaxY());
+						_player->UDMagicPosition = Vec2(winSize.width / 2, blockRect.getMinY());
+						testBlock->setPosition(_player->UDMagicPosition);
+
 					}
 				}
 			}			
@@ -895,10 +999,10 @@ void Stage::update(float dt)
 
 
 		//魔法終了時にエフェクトを消す
-		if (_player->magicFlag == false)
+		if (magicUse == true)
 		{
-			this->removeChild(_sideMagic);
-			this->removeChild(_upDownMagic);
+			//this->removeChild(_sideMagic);
+			//this->removeChild(_upDownMagic);
 		}
 
 	}
