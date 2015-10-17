@@ -593,14 +593,61 @@ Blocks* Stage::BlockGen(int gid)
 	//剛体設置
 	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9 || gid == 12 || gid == 13){
 	auto category = 1;
-	Point box[4]{Point(-8, -8), Point(-8, 8), Point(8, 8), Point(8, -8)};
-	auto physicsBody = PhysicsBody::createEdgeChain(box,4, material,1.0);
+	//Point box[4]{Point(-7, -8), Point(-7, 8), Point(7, 8), Point(7, -8)};
+	Point zeroPoint[1]{Point(0, 0)};
+
+	Point line[2]{Point(-8, 8), Point(7, 8)};
+	Point line2[2]{Point(-8, 6), Point(-8, -7)};
+	Point line3[2]{Point(7, 6), Point(7, -7)};
+
+	//auto physicsBody = PhysicsBody::createEdgeChain(box, 4, material, 1.0);
+	auto physicsBody = PhysicsBody::createEdgeChain(line, 2, material, 0.5);
+	auto physicsBody2 = PhysicsBody::createEdgeChain(line2, 2, material, 0.5);
+	auto physicsBody3 = PhysicsBody::createEdgeChain(line3, 2, material, 0.5);
+
+	auto noBody = PhysicsBody::createEdgeChain(zeroPoint, 1, material, 1.0);
+
+	noBody->setDynamic(false);
+	noBody->setCategoryBitmask(category);
+	noBody->setCollisionBitmask(static_cast<int>(TileType::AIR));
+	noBody->setContactTestBitmask(static_cast<int>(TileType::AIR));
+
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
 	physicsBody->setCollisionBitmask(static_cast<int>(TileType::AIR));
 	physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
 
-	blockGen->setPhysicsBody(physicsBody);
+	physicsBody2->setDynamic(false);
+	physicsBody2->setCategoryBitmask(category);
+	physicsBody2->setCollisionBitmask(static_cast<int>(TileType::AIR));
+	physicsBody2->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
+
+	physicsBody3->setDynamic(false);
+	physicsBody3->setCategoryBitmask(category);
+	physicsBody3->setCollisionBitmask(static_cast<int>(TileType::AIR));
+	physicsBody3->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
+
+	auto physicsNode = Node::create();
+	auto physicsNode2 = Node::create();
+	auto physicsNode3 = Node::create();
+
+	physicsNode->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	physicsNode2->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	physicsNode3->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+
+	physicsNode->setPosition(Vec2(this->getPosition().x + 8, this->getPosition().y + 8));
+	physicsNode2->setPosition(Vec2(this->getPosition().x + 8, this->getPosition().y + 8));
+	physicsNode3->setPosition(Vec2(this->getPosition().x + 8, this->getPosition().y + 8));
+
+	physicsNode->setPhysicsBody(physicsBody);
+	physicsNode2->setPhysicsBody(physicsBody2);
+	physicsNode3->setPhysicsBody(physicsBody3);
+
+	blockGen->addChild(physicsNode);
+	blockGen->addChild(physicsNode2);
+	blockGen->addChild(physicsNode3);
+
+	blockGen->setPhysicsBody(noBody);
 	_allBlocks.pushBack(blockGen);
 	}
 	auto tileSize = Size(5, 4);
@@ -907,13 +954,11 @@ void Stage::update(float dt)
 					if (_player->upFlag == true)
 					{
 						_player->UDMagicPosition = Vec2(winSize.width/2, blockRect.getMaxY());
-						testBlock->setPosition(_player->UDMagicPosition);
 
 					}
 					else
 					{
 						_player->UDMagicPosition = Vec2(winSize.width / 2, blockRect.getMinY());
-						testBlock->setPosition(_player->UDMagicPosition);
 
 					}
 				}
@@ -1057,7 +1102,7 @@ bool Stage::initWithLevel(int level)
 		Node* groundNode = ground->getBody()->getNode();
 		
 		//NodeをBlocks*にダウンキャスト
-		Blocks *_neighborBlock = dynamic_cast<Blocks *>(groundNode);
+		Blocks *_neighborBlock = dynamic_cast<Blocks *>(groundNode->getParent());
 		if (_neighborBlock != nullptr) 
 		{
 			//なんもしない
@@ -1069,9 +1114,9 @@ bool Stage::initWithLevel(int level)
 		auto nowBlockVec = BlockVecConvert(nowBlockPosition);
 
 		//カテゴリ抽出
-		int category = groundNode->getPhysicsBody()->getCategoryBitmask();
+		int category = groundNode->getParent()->getPhysicsBody()->getCategoryBitmask();
 
-		Rect groundRect = groundNode->getBoundingBox();
+		Rect groundRect = groundNode->getParent()->getBoundingBox();
 		float groundTopY = groundRect.getMaxY();
 
 		float minX = groundRect.origin.x;
@@ -1085,8 +1130,9 @@ bool Stage::initWithLevel(int level)
 		{
 			// std::find(_neighborBlocks.begin(), _neighborBlocks.end(), nowBlockPosition) != _neighborBlocks.end();
 			bool isExist = _neighborBlocks.contains(_neighborBlock);
-			if (!isExist){}
-			_neighborBlocks.pushBack(_neighborBlock);
+			if (!isExist){ _neighborBlocks.pushBack(_neighborBlock); }
+			
+
 			testBlock->setPosition(nowBlockPosition);
 			if (groundTopY <= playerBottomY)
 			{
@@ -1141,9 +1187,9 @@ bool Stage::initWithLevel(int level)
 				}
 			}
 			//左右の衝突時に止める
-			else if (nowBlockVec.y <= playerMapVec.y)
+			else// if (nowBlockVec.y <= playerMapVec.y)
 			{
-
+				log("check");
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
 				{
 					_player->stopL = true;
@@ -1165,7 +1211,7 @@ bool Stage::initWithLevel(int level)
 		Node* groundNode = ground->getBody()->getNode();
 
 		//NodeをBlocks*にダウンキャスト
-		Blocks * outBlock = dynamic_cast<Blocks *>(groundNode);
+		Blocks * outBlock = dynamic_cast<Blocks *>(groundNode->getParent());
 		if (outBlock != nullptr)
 		{
 			//なんもしない
@@ -1177,7 +1223,8 @@ bool Stage::initWithLevel(int level)
 				_neighborBlocks.eraseObject(outBlock);
 			}
 		}
-	
+		log("size = %d", _neighborBlocks.size());
+
 		if (_neighborBlocks.empty())
 		{
 			_player->getPhysicsBody()->setGravityEnable(true);
