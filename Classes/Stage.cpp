@@ -157,7 +157,7 @@ void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 
 Magic* Stage::upDownMirrorEffect()
 {
-	Size winSize = Director::getInstance()->getWinSize();
+	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
@@ -207,7 +207,7 @@ Magic* Stage::upDownMirrorEffect()
 
 Magic* Stage::sideMirrorEffect()
 {
-	Size winSize = Director::getInstance()->getWinSize();
+	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 
 	auto flip = FlipX::create(true);
@@ -593,7 +593,7 @@ Blocks* Stage::BlockGen(int gid)
 	//剛体設置
 	if (gid == 1 || gid == 4 || gid == 6 || gid == 7 || gid == 8 || gid == 9 || gid == 12 || gid == 13){
 	auto category = 1;
-	Point box[4]{Point(-8, -8), Point(-8, 8), Point(8, 8), Point(8, -8)};
+	cocos2d::Point box[4]{cocos2d::Point(-8, -8), cocos2d::Point(-8, 8), cocos2d::Point(8, 8), cocos2d::Point(8, -8)};
 	auto physicsBody = PhysicsBody::createBox(Size(16,16));
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
@@ -603,13 +603,13 @@ Blocks* Stage::BlockGen(int gid)
 	blockGen->setPhysicsBody(physicsBody);
 	_allBlocks.pushBack(blockGen);
 	}
-	auto tileSize = Size(5, 4);
+	auto tileSize = cocos2d::Size(5, 4);
 	const int X_MAX = tileSize.width;
 
 	rectX = ((gid - 1) % X_MAX + 1) - 1;
 	rectY = (int)((gid - 1) / X_MAX);
 
-	blockGen->setTextureRect(Rect(rectX * MAPCHIP_SIZE, rectY * MAPCHIP_SIZE, MAPCHIP_SIZE, MAPCHIP_SIZE));
+	blockGen->setTextureRect(cocos2d::Rect(rectX * MAPCHIP_SIZE, rectY * MAPCHIP_SIZE, MAPCHIP_SIZE, MAPCHIP_SIZE));
 
 	auto blockRect = blockGen->getBoundingBox();
 
@@ -737,7 +737,7 @@ void Stage::update(float dt)
 
 	_playerPosition = _player->getPosition();
 
-	Size winSize = Director::getInstance()->getWinSize();
+	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 
 
 	if (_playerPosition.x >= winSize.width)
@@ -888,8 +888,8 @@ void Stage::update(float dt)
 		{
 			for (Blocks* point : _neighborBlocks)
 			{
-				Rect playerRect = _player->getBoundingBox();
-				Rect blockRect = Rect(point->getPosition().x - MAPCHIP_SIZE / 2, point->getPosition().y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
+				cocos2d::Rect playerRect = _player->getBoundingBox();
+				cocos2d::Rect blockRect = Rect(point->getPosition().x - MAPCHIP_SIZE / 2, point->getPosition().y - MAPCHIP_SIZE / 2, MAPCHIP_SIZE, MAPCHIP_SIZE);
 				if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 				{
 					_standBlockPosition = BlockVecConvert(point->getPosition());
@@ -1071,13 +1071,13 @@ bool Stage::initWithLevel(int level)
 		//カテゴリ抽出
 		int category = groundNode->getPhysicsBody()->getCategoryBitmask();
 
-		Rect groundRect = groundNode->getBoundingBox();
+		cocos2d::Rect groundRect = groundNode->getBoundingBox();
 		float groundTopY = groundRect.getMaxY();
 
 		float minX = groundRect.origin.x;
 		float maxX = groundRect.getMaxX() ;
 	
-		Rect playerRect = _player->getBoundingBox();
+		cocos2d::Rect playerRect = _player->getBoundingBox();
 		float playerBottomY = playerRect.origin.y;
 
 
@@ -1193,7 +1193,7 @@ bool Stage::initWithLevel(int level)
 	this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(contactListener, this);
 
 	//画面サイズ取得
-	Size winSize = Director::getInstance()->getWinSize();
+	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 	
 	//背景表示
 	auto background1 = Sprite::create("graphics/sky.png");

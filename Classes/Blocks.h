@@ -5,7 +5,7 @@ class Blocks : public cocos2d::Sprite
 protected:
 	bool init() override;
 
-	Blocks::Blocks();
+	Blocks();
 	//virtual Blocks::~Blocks() override;
 
 	/*

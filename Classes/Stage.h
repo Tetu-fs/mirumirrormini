@@ -2,7 +2,7 @@
 #define __STAGE_H__
 
 #include "vector"
-#include "math\CCMath.h"
+#include "math/CCMath.h"
 #include "cocos2d.h"
 #include "AudioEngine.h"
 

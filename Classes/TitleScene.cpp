@@ -40,7 +40,7 @@ bool TitleScene::init()
 		return false;
 	}
 
-	Size winSize = Director::getInstance()->getWinSize();
+	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 
 	//îwåiï\é¶
 	auto background1 = Sprite::create("graphics/sky.png");

@@ -38,6 +38,12 @@ set(BUILD_CPP_TESTS OFF CACHE BOOL "turn off build cpp-tests")
 set(BUILD_LUA_LIBS OFF CACHE BOOL "turn off build lua-tests")
 add_subdirectory(${COCOS2D_ROOT})
 
+if ( CMAKE_SIZEOF_VOID_P EQUAL 8 )
+set(ARCH_DIR "64-bit")
+else()
+set(ARCH_DIR "32-bit")
+endif()
+
 # Some macro definitions
 if(WINDOWS)
   if(BUILD_SHARED_LIBS)
@@ -82,19 +88,29 @@ endif(MSVC)
 
 set(PLATFORM_SPECIFIC_SRC)
 set(PLATFORM_SPECIFIC_HEADERS)
+set(PLATFORM_SPECIFIC_HEADER_DIRS)
 if(MACOSX OR APPLE)
+  # set(PLATFORM_SPECIFIC_SRC
+  #   proj.ios_mac/ios/main.m
+  #   proj.ios_mac/ios/RootViewController.mm
+  #   proj.ios_mac/ios/AppController.mm
+  # )
+  # set(PLATFORM_SPECIFIC_HEADERS
+  #   proj.ios_mac/ios/RootViewController.h
+  #   proj.ios_mac/ios/AppController.h
+  # )
 set(PLATFORM_SPECIFIC_SRC
-  proj.ios_mac/ios/main.m
-  proj.ios_mac/ios/RootViewController.mm
-  proj.ios_mac/ios/AppController.mm
+  proj.ios_mac/mac/main.cpp
 )
-set(PLATFORM_SPECIFIC_HEADERS
-  proj.ios_mac/ios/RootViewController.h
-  proj.ios_mac/ios/AppController.h
+set(PLATFORM_SPECIFIC_HEADER_DIRS
+  ${COCOS2D_ROOT}/external/glfw3/include/mac
 )
 elseif(LINUX) #assume linux
 set(PLATFORM_SPECIFIC_SRC
   proj.linux/main.cpp
+)
+set(PLATFORM_SPECIFIC_HEADER_DIRS
+  ${COCOS2D_ROOT}/external/linux-specific/fmod/include/${ARCH_DIR}
 )
 elseif ( WIN32 )
 set(PLATFORM_SPECIFIC_SRC
@@ -110,18 +126,32 @@ include_directories(
   /usr/local/include/GLFW
   /usr/include/GLFW
   ${COCOS2D_ROOT}/cocos
+  ${COCOS2D_ROOT}/cocos/audio/include
   Classes
+  ${PLATFORM_SPECIFIC_HEADER_DIRS}
 )
 
 set(GAME_SRC
   Classes/AppDelegate.cpp
-  Classes/HelloWorldScene.cpp
+  Classes/AudioManager.cpp
+  Classes/Blocks.cpp
+  Classes/Magic.cpp
+  Classes/MainScene.cpp
+  Classes/Player.cpp
+  Classes/Stage.cpp
+  Classes/TitleScene.cpp
   ${PLATFORM_SPECIFIC_SRC}
 )
 
 set(GAME_HEADERS
   Classes/AppDelegate.h
-  Classes/HelloWorldScene.h
+  Classes/AudioManager.h
+  Classes/Blocks.h
+  Classes/Magic.h
+  Classes/MainScene.h
+  Classes/Player.h
+  Classes/Stage.h
+  Classes/TitleScene.h
   ${PLATFORM_SPECIFIC_HEADERS}
 )
 
@@ -144,12 +174,11 @@ if ( WIN32 )
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${APP_BIN_DIR}/Resources
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${APP_BIN_DIR}/Resources
     COMMAND ${CMAKE_COMMAND} -E copy ${COCOS2D_ROOT}/external/win32-specific/gles/prebuilt/glew32.dll ${APP_BIN_DIR}/${CMAKE_BUILD_TYPE}
-	COMMAND ${CMAKE_COMMAND} -E copy ${COCOS2D_ROOT}/external/win32-specific/zlib/prebuilt/zlib1.dll ${APP_BIN_DIR}/${CMAKE_BUILD_TYPE}
-	)
+    COMMAND ${CMAKE_COMMAND} -E copy ${COCOS2D_ROOT}/external/win32-specific/zlib/prebuilt/zlib1.dll ${APP_BIN_DIR}/${CMAKE_BUILD_TYPE}
+  )
 else()
   pre_build(${APP_NAME}
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${APP_BIN_DIR}/Resources
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/Resources ${APP_BIN_DIR}/Resources
-    )
-
+  )
 endif()
