@@ -5,7 +5,7 @@
 
 USING_NS_CC;
 
-const int INITIAL_LEVEL = 4;
+const int INITIAL_LEVEL = 1;
 
 Scene *TitleScene::createScene()
 {
@@ -110,7 +110,7 @@ bool TitleScene::init()
 			logo->setPosition(Vec2(194, 160));
 			experimental::AudioEngine::stop(titleBGM);
 			experimental::AudioEngine::play2d("sounds/se_cancel.mp3", false, 0.8f);
-
+			Music::mainMusicID = -1;
 			auto scene = MainScene::createSceneWithLevel(INITIAL_LEVEL);
 			auto transition = TransitionFade::create(1.0f, scene);
 			Director::getInstance()->replaceScene(transition);

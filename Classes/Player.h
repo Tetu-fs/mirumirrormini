@@ -2,7 +2,7 @@
 #define __PLAYER_H__
 
 #include "cocos2d.h"
-#include "Magic.h"
+//#include "Magic.h"
 class Player :public cocos2d::Sprite
 {
 protected:
@@ -28,10 +28,7 @@ public:
 	void playAnimation(int index);
 
 
-	Magic* magic;
 
-	Magic* sideMirrorEffect();
-	Magic* upDownMirrorEffect();
 
 
 	CREATE_FUNC(Player);

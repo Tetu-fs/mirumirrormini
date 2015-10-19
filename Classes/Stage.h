@@ -7,6 +7,7 @@
 #include "AudioEngine.h"
 
 #include "Player.h"
+#include "Magic.h"
 #include "Blocks.h"
 
 
@@ -37,7 +38,9 @@ protected:
 	void jumpMethod();
 	float playerX;
 	float playerY;
-	
+	//次のステージ
+	int nextLevel;
+
 	//BlockGen
 	int blockX;
 	int blockY;
@@ -46,15 +49,13 @@ protected:
 	int rectX;
 	int rectY;
 	int tileID;
+	
+	//反射ブロックを動かす変数
+	float mirrorMove;
 
 	//BGMのID
 	int mainBgmID;
-	//次のステージ
-	int nextLevel;
 
-
-	//魔法停止時間
-	int timeCount;
 
 
 	enum class GameState
@@ -71,6 +72,8 @@ protected:
 
 	//現在たっているブロック用のガイド
 	cocos2d::Vec2 testVec;
+
+	cocos2d::Vec2 check;
 
 	//ゴールの場所
 	cocos2d::Vec2 goalVec;
@@ -92,15 +95,16 @@ protected:
 	//現在たっているブロックのマップ座標
 	cocos2d::Vec2 _standBlockPosition;
 
-	//現在接触しているブロックの座標を格納する配列
-	std::vector<cocos2d::Vec2> _neighborBlockPositions;
+	//現在接触しているブロックを格納する配列
+	cocos2d::Vector<Blocks*> _neighborBlocks;
 
 	//反射ブロックを格納する配列
-	std::vector<Blocks*> _mirrorAbleBlocks;
-
+	cocos2d::Vector<Blocks*> _mirrorAbleBlocks;
 
 	//反射ブロックのマップ座標を格納する配列
 	std::vector<cocos2d::Vec2> _mirrorAblePositions;
+	
+
 
 	//引数に渡されたStage上の座標をマップ座標に変換するメソッド
 	cocos2d::Vec2 BlockVecConvert(cocos2d::Vec2 blockAncorVecs);
@@ -118,7 +122,6 @@ protected:
 	//クリア後の表示
 	cocos2d::Sprite* clearNext;
 	cocos2d::Sprite* clearTitle;
-
 
 	//Blocksクラスの変数_blockGen　ブロックの生成メソッドを代入
 	Blocks* _blockGen;
@@ -142,8 +145,13 @@ public:
 
 	void update(float dt) override;
 
-	//横反射のエフェクト用のメソッド
+	Magic* magic;
+
+	//反射のエフェクト用のメソッド
 	Magic* sideMirrorEffect();
+	Magic* upDownMirrorEffect();
+
+
 	//gidによってタイルを切り出し表示するメソッド
 	Blocks* BlockGen(int gid);
 
@@ -158,9 +166,11 @@ public:
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CC_SYNTHESIZE_RETAIN(Blocks*, _blocks, Blocks);
 	CC_SYNTHESIZE(GameState, _state, State);
-	CC_SYNTHESIZE(int, _mainBgmID, MainBgmID);
-	static Stage* createWithLevel(int level);
 
+	static Stage* createWithLevel(int level);
+	void moveBlockX(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
+	void moveBlockY(Blocks* mirrorBlock, cocos2d::Vec2 mirrorPosition);
+	void checkStop();
 };
 
 #endif //__STAGE_H__
