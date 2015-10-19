@@ -22,11 +22,11 @@ bool Player::init()
 	{
 		return false;
 	}
-	//Point PBox[8]{Point(-2, -12), Point(-4, -10), Point(-4, -2), Point(-2, 0), Point(2, 0), Point(4, -2), Point(4, -10), Point(2, -12)};
-	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
+	Point PBox[8]{Point(-2, -12), Point(-4, -10), Point(-4, -2), Point(-2, 0), Point(2, 0), Point(4, -2), Point(4, -10), Point(2, -12)};
+	//Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
 
 	//auto body = PhysicsBody::createEdgePolygon(PBox, 4,PHYSICSBODY_MATERIAL_DEFAULT,0.5f);
-	auto body = PhysicsBody::createPolygon(PBox, 4);
+	auto body = PhysicsBody::createPolygon(PBox, 8);
 	body->setEnable(true);
 	body->setDynamic(true);
 	body->setGravityEnable(true);
