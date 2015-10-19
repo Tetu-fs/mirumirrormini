@@ -25,8 +25,8 @@ bool Player::init()
 
 
 
-	//Point PBox[8]{Point(-2, -12), Point(-4, -10), Point(-4, -2), Point(-2, 0), Point(2, 0), Point(4, -2), Point(4, -10), Point(2, -12)};
-	Point PBox[4]{Point(-4, -12), Point(-4, 0), Point(4, 0), Point(4, -12)};
+	//cocos2d::Point PBox[8]{cocos2d::Point(-2, -12), cocos2d::Point(-4, -10), cocos2d::Point(-4, -2), cocos2d::Point(-2, 0), cocos2d::Point(2, 0), cocos2d::Point(4, -2), cocos2d::Point(4, -10), cocos2d::Point(2, -12)};
+	cocos2d::Point PBox[4]{cocos2d::Point(-4, -12), cocos2d::Point(-4, 0), cocos2d::Point(4, 0), cocos2d::Point(4, -12)};
 
 	//auto body = PhysicsBody::createEdgePolygon(PBox, 4,PHYSICSBODY_MATERIAL_DEFAULT,0.5f);
 	auto body = PhysicsBody::createPolygon(PBox, 4);
@@ -53,7 +53,7 @@ bool Player::init()
 
 Magic* Player::upDownMirrorEffect()
 {
-	Size winSize = Director::getInstance()->getWinSize();
+	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 	float whiteUpScale = 244;
@@ -76,7 +76,7 @@ Magic* Player::upDownMirrorEffect()
 
 Magic* Player::sideMirrorEffect()
 {
-	Size winSize = Director::getInstance()->getWinSize();
+	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 	float whiteRightScale = 384;
@@ -117,12 +117,12 @@ void Player::playAnimation(int index)
 
 	// cocos2d::Size型のframeSize変数で表示するかわずたんのスプライトのサイズを指定？
 	//Size(frameSize.width, frameSize.height)にそれぞれ16.0を代入している。型はfloat
-	auto frameSize = Size(16.0, 24.0);
+	auto frameSize = cocos2d::Size(16.0, 24.0);
 
 	//？
 	//スプライトのX座標0、Y座標0(左上)から、16x16を切り出す？
 	//Rectはx,y,width,heightの4つをとれる。矩形という意味
-	this->setTextureRect(Rect(0, 0, frameSize.width, frameSize.height));
+	this->setTextureRect(cocos2d::Rect(0, 0, frameSize.width, frameSize.height));
 
 	//SpriteFrame*というテンプレートでframesという配列を宣言
 	Vector<SpriteFrame*> frames;
@@ -136,42 +136,42 @@ void Player::playAnimation(int index)
 		//画像kawaz_shooting.pngを読み、frameSize.widthにiをかけ2コマアニメーションのループ
 		//indexに16(frameSize.heightの値)をかけ、アニメーションを切り替え
 		//frameSize.widthとframeSize.heightで表示する画像の大きさを指定？
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * i, index * frameSize.height, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(frameSize.width * i, index * frameSize.height, frameSize.width, frameSize.height));
 
 		//配列framesの終わりにframeの値を挿入する
 		frames.pushBack(frame);
 	}
-	auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, index * frameSize.height, frameSize.width, frameSize.height));
+	auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(frameSize.width, index * frameSize.height, frameSize.width, frameSize.height));
 	frames.pushBack(frame);
 
 	if (index == 2)
 	{
 		frames.clear();
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, 2 * frameSize.height, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(frameSize.width, 2 * frameSize.height, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
 	}
 	else if (index == 3)
 	{
 		frames.clear();
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * 2, 2 * frameSize.height, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(frameSize.width * 2, 2 * frameSize.height, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
 	}
 	else if (index == 4)
 	{
 		frames.clear();
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(0, 3 * frameSize.height, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(0, 3 * frameSize.height, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
 	}
 	else if (index == 5)
 	{
 		frames.clear();
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width, 3 * frameSize.height, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(frameSize.width, 3 * frameSize.height, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
 	}
 	else if (index == 6)
 	{
 		frames.clear();
-		auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * 2, 3 * frameSize.height, frameSize.width, frameSize.height));
+		auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(frameSize.width * 2, 3 * frameSize.height, frameSize.width, frameSize.height));
 		frames.pushBack(frame);
 	}
 	else if (index == 7)
@@ -179,7 +179,7 @@ void Player::playAnimation(int index)
 		frames.clear();
 		for (int i = 0; i <= FRAME_COUNT; ++i)
 		{
-			auto frame = SpriteFrame::create("graphics/luk_sprite.png", Rect(frameSize.width * i, 96, frameSize.width, frameSize.height));
+			auto frame = SpriteFrame::create("graphics/luk_sprite.png", cocos2d::Rect(frameSize.width * i, 96, frameSize.width, frameSize.height));
 			frames.pushBack(frame);
 		}
 	}
