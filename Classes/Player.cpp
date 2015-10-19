@@ -98,24 +98,53 @@ Magic* Player::sideMirrorEffect()
 	cocos2d::Size winSize = Director::getInstance()->getWinSize();
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	float whiteRightScale = 384;
-	float whiteLeftScale = -384;
-
 	magic->setScaleY(16 * 14);
+
+	ScaleTo* whiteRightScale = ScaleTo::create(0.2, winSize.width, 244);
+	ScaleTo* whiteLeftScale = ScaleTo::create(0.2, this->getPositionX() - winSize.width, 244);
+	MoveTo* goRight = MoveTo::create(0.2, Vec2(winSize.width, 0));
+	MoveTo* goLeft = MoveTo::create(0.2, Vec2(-winSize.width, 0));
+	Sequence* RightMagic = Sequence::create(whiteRightScale, goRight, RemoveSelf::create(), NULL);
+	Sequence* LeftMagic = Sequence::create(whiteLeftScale, goLeft, RemoveSelf::create(), NULL);
+
+	auto flip = FlipX::create(true);
+	auto flipback = FlipX::create(false);
+	Sequence* LreflexMove = Sequence::create(flip,DelayTime::create(0.1), goLeft, RemoveSelf::create(), NULL);
+	Sequence* RreflexMove = Sequence::create(flipback, DelayTime::create(0.1), goRight, RemoveSelf::create(), NULL);
+
+	auto clipping = ClippingNode::create();
+	clipping->setStencil(magic);
+	clipping->setInverted(false);
+	clipping->setAlphaThreshold(1.0);
+	addChild(clipping);
 
 	if (rightFlag == true)
 	{
-		magic->setScaleX(whiteRightScale);
+		magic->runAction(RightMagic);
+
+		auto reflex = Sprite::create("graphics/reflex.png");
+		reflex->getTexture()->setAliasTexParameters();
+		reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+		reflex->runAction(RreflexMove);
+
+		clipping->addChild(reflex);
 	}
 
 	else
 	{
-		magic->setScaleX(whiteLeftScale);
+		magic->runAction(LeftMagic);
+
+		auto reflex = Sprite::create("graphics/reflex.png");
+		reflex->getTexture()->setAliasTexParameters();
+		reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_RIGHT);
+		reflex->runAction(LreflexMove);
+
+		clipping->addChild(reflex);
 	}
 
 	return magic;
 }
-
+*/
 // 0~2のアニメーションを再生するメソッド(0通常、1上、2下)
 //void型のPlayer::playAnimation(int index)関数を作成
 void Player::playAnimation(int index)
