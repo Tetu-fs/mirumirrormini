@@ -1,11 +1,6 @@
 #include "Blocks.h"
 USING_NS_CC;
 
-Blocks::Blocks()
-
-{
-
-}
 
 bool Blocks::init()
 {

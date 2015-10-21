@@ -14,8 +14,8 @@ const int MAX_LEVEL = 9;
 const char* STAGE_FILE = "graphics/stage%d.tmx";
 
 Stage::Stage()
-	: _player(nullptr)
-	, _tiledMap(nullptr)
+	: _tiledMap(nullptr)
+	, _player(nullptr)
 	, _blocks(nullptr)
 	, leftPressFlag(false)
 	, rightPressFlag(false)
@@ -61,6 +61,7 @@ Stage::~Stage()
 	CC_SAFE_RELEASE_NULL(_tiledMap);
 	CC_SAFE_RELEASE_NULL(_blocks);
 
+	_mirrorAblePositions.clear();
 }
 
 Stage* Stage::createWithLevel(int level)
@@ -106,8 +107,7 @@ void Stage::moveBlockX(Blocks* mirrorBlock, Vec2 mirrorPosition)
 		mirrorBlock->runAction(moveAction);
 		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
-	//_player->getPhysicsBody()->applyImpulse(Vec2(0,20));
-	//_player->getPhysicsBody()->setGravityEnable(true);
+
 	this->scheduleOnce([this](float dt)
 	{
 		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
@@ -161,7 +161,6 @@ Magic* Stage::upDownMirrorEffect()
 
 	magic = Magic::create();
 	magic->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
-	//magic->setScaleY(2);
 	magic->setScaleX(0.25);
 	ScaleTo* whiteUpScale = ScaleTo::create(0.2, 1, 1);
 	ScaleTo* whiteDownScale = ScaleTo::create(0.2, 1, 1);
@@ -170,22 +169,6 @@ Magic* Stage::upDownMirrorEffect()
 	Sequence* upMagic = Sequence::create(whiteUpScale, goUp, RemoveSelf::create(), NULL);
 	Sequence* downMagic = Sequence::create(whiteDownScale, goDown, RemoveSelf::create(), NULL);
 	
-	MoveTo* goRight = MoveTo::create(0.1, Vec2(winSize.width, 0));
-
-	Sequence* UpDownreflexMove = Sequence::create(DelayTime::create(0.1), goRight, RemoveSelf::create(), NULL);
-	auto clipping = ClippingNode::create();
-	clipping->setStencil(magic);
-	clipping->setInverted(false);
-	clipping->setAlphaThreshold(1.0);
-	this->addChild(clipping);
-
-	auto reflex = Sprite::create("graphics/reflex.png");
-	reflex->getTexture()->setAliasTexParameters();
-	reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	reflex->runAction(UpDownreflexMove);
-
-	clipping->addChild(reflex);
-	log("%f", reflex->getPositionY());
 
 	if (_player->upFlag == true)
 	{
@@ -218,29 +201,12 @@ Magic* Stage::sideMirrorEffect()
 	Sequence* RightMagic = Sequence::create(flipback, whiteScale, goRight, RemoveSelf::create(), NULL);
 	Sequence* LeftMagic = Sequence::create(flip, whiteScale, goLeft, RemoveSelf::create(), NULL);
 
-	Sequence* LreflexMove = Sequence::create(flip, DelayTime::create(0.1), goLeft, RemoveSelf::create(), NULL);
-	Sequence* RreflexMove = Sequence::create(flipback, DelayTime::create(0.1), goRight, RemoveSelf::create(), NULL);
-
-	auto clipping = ClippingNode::create();
-	clipping->setStencil(magic);
-	clipping->setInverted(false);
-	clipping->setAlphaThreshold(1.0);
-
-	this->addChild(clipping);
-
-	auto reflex = Sprite::create("graphics/reflex.png");
-	reflex->getTexture()->setAliasTexParameters();
-	reflex->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
-	reflex->setPosition(Vec2::ZERO);
-	clipping->addChild(reflex);
-
 	if (_player->rightFlag == true)
 	{
 		magic->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
 
 		magic->runAction(RightMagic);
 
-		reflex->runAction(RreflexMove);
 	}
 
 	else
@@ -249,7 +215,6 @@ Magic* Stage::sideMirrorEffect()
 
 		magic->runAction(LeftMagic);
 
-		reflex->runAction(LreflexMove);
 	}
 
 	return magic;
@@ -259,11 +224,11 @@ Magic* Stage::sideMirrorEffect()
 void Stage::playerMove()
 {
 	/*
-	スペースキーを押すと　向いている方向に横反射
-	Aを押すと左を向いて横反射
-	Dを押すと右を向いて横反射
-	Wを押すと上反射
-	Sを押すと下反射
+	*スペースキーを押すと　向いている方向に横反射
+	*Aを押すと左を向いて横反射
+	*Dを押すと右を向いて横反射
+	*Wを押すと上反射
+	*Sを押すと下反射
 	*/
 	//cocos2d::EventListenerKeyboard型のポインタ変数keyboardListenerを宣言し、EventListenerKeyboard::createを代入
 	auto keyboardListener = EventListenerKeyboard::create();
@@ -296,7 +261,6 @@ void Stage::playerMove()
 		{
 			if (_state == GameState::PLAYING)
 			{
-				//log("%d", magicUse);
 				if (magicUse == true && moveFlag == false)
 				{
 					if (getJumpFlag() == true)
@@ -857,7 +821,6 @@ void Stage::update(float dt)
 		}
 
 		//壁に衝突した際に動きを止める
-		//checkStop();
 		if (_player->stopL == true)
 		{
 			if (_velocity.x < 0)
@@ -883,9 +846,12 @@ void Stage::update(float dt)
 
 		//反射魔法のエフェクト範囲
 		//着地時に落下を止める
-		if (getJumpFlag() == true && wallFlag == false
-			&& _prevPosition.y != _player->getPosition().y)
+		if (getJumpFlag() == true && wallFlag == false)
 		{
+			if (_prevPosition.y != _player->getPosition().y){
+				_player->setPositionY(StageVecConvert(playerMapVec).y + 4);
+			}
+
 			for (Blocks* point : _neighborBlocks)
 			{
 				cocos2d::Rect playerRect = _player->getBoundingBox();
@@ -907,14 +873,10 @@ void Stage::update(float dt)
 					if (_player->upFlag == true)
 					{
 						_player->UDMagicPosition = Vec2(winSize.width/2, blockRect.getMaxY());
-						testBlock->setPosition(_player->UDMagicPosition);
-
 					}
 					else
 					{
 						_player->UDMagicPosition = Vec2(winSize.width / 2, blockRect.getMinY());
-						testBlock->setPosition(_player->UDMagicPosition);
-
 					}
 				}
 			}			
@@ -991,23 +953,11 @@ void Stage::update(float dt)
 				setJumpFlag(false);
 				_player->playAnimation(3);
 			}
-			//else if (!_neighborBlocks.empty())
-			//{setJumpFlag(true); }
+
 
 			_prevPosition = _playerPosition;
 		}
-
-
-		//魔法終了時にエフェクトを消す
-		if (magicUse == true)
-		{
-			//this->removeChild(_sideMagic);
-			//this->removeChild(_upDownMagic);
-		}
-
 	}
-
-
 
 	//ゲームオーバー
 	if (_state == GameState::GAMEOVER && _player->getParent() != nullptr)
@@ -1064,7 +1014,6 @@ bool Stage::initWithLevel(int level)
 		}
 
 		nowBlockPosition = _neighborBlock->getPosition();
-		//log("%f", worldPos.x);
 
 		auto nowBlockVec = BlockVecConvert(nowBlockPosition);
 
@@ -1083,7 +1032,6 @@ bool Stage::initWithLevel(int level)
 
 		if (category & static_cast<int>(Stage::TileType::BLOCKS))
 		{
-			// std::find(_neighborBlocks.begin(), _neighborBlocks.end(), nowBlockPosition) != _neighborBlocks.end();
 			bool isExist = _neighborBlocks.contains(_neighborBlock);
 			if (!isExist){
 			}
@@ -1091,7 +1039,6 @@ bool Stage::initWithLevel(int level)
 
 			log("size = %d", _neighborBlocks.size());
 
-			testBlock->setPosition(nowBlockPosition);
 			if (groundTopY <= playerBottomY)
 			{
 				//壁乗りを封じる
@@ -1108,7 +1055,6 @@ bool Stage::initWithLevel(int level)
 						if (getJumpFlag() == true && Vec2(playerMapVec.x, playerMapVec.y + 1) != neighborBlockMapVec)
 						{
 
-							//if (_player->stopL == true)
 							if (_neighborBlocks.back()->getPosition() == StageVecConvert(Vec2(playerMapVec.x - 1, playerMapVec.y + 1))
 								&& _player->stopL == true)
 							{
@@ -1136,17 +1082,14 @@ bool Stage::initWithLevel(int level)
 							setJumpFlag(true);
 							_player->getPhysicsBody()->setGravityEnable(false);
 							_player->getPhysicsBody()->setVelocity(Vec2(0, 0));
-							_player->setPositionY(StageVecConvert(_standBlockPosition).y + (MAPCHIP_SIZE / 2) + 16);
-
 							wallFlag = false;
 						}
 					}
 				}
 			}
 			//左右の衝突時に止める
-			else if (nowBlockVec.y <= playerMapVec.y)
+			else if (nowBlockVec.y >= playerMapVec.y)
 			{
-
 				if (maxX >= playerRect.getMinX() && nowBlockPosition.x < _player->getPositionX())
 				{
 					_player->stopL = true;
@@ -1177,6 +1120,12 @@ bool Stage::initWithLevel(int level)
 		{
 			if (_neighborBlocks.contains(outBlock))
 			{
+				if (BlockVecConvert(outBlock->getPosition()).x == playerMapVec.x + 1){
+					_player->stopR = false;
+				}
+				else if (BlockVecConvert(outBlock->getPosition()).x == playerMapVec.x - 1){
+					_player->stopL = false;
+				}
 				log("checkX = %f", outBlock->getPositionX());
 				_neighborBlocks.eraseObject(outBlock);
 			}
@@ -1290,7 +1239,7 @@ bool Stage::initWithLevel(int level)
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
 
-	/**/
+	/*
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setPosition(Vec2(0,0));
 	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
@@ -1298,7 +1247,7 @@ bool Stage::initWithLevel(int level)
 	testBlock->getTexture()->setAliasTexParameters();
 	testBlock->setZOrder(99);
 	this->addChild(testBlock);
-	
+	*/
 	if (_level < MAX_LEVEL)
 	{
 		clearNext = Sprite::create("graphics/clear_next.png");

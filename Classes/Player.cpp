@@ -6,6 +6,11 @@ const int FRAME_COUNT = 3;
 Player::Player()
 	:indexCheck(-1)
 	, magicFlag(false)
+	, upFlag(false)
+	, rightFlag(true)
+	, downFlag(false)
+	, stopL(false)
+	, stopR(false)
 	, LRMagicPosition(0,0)
 	, UDMagicPosition(0, 0)
 {
