@@ -104,7 +104,8 @@ protected:
 	//反射ブロックのマップ座標を格納する配列
 	std::vector<cocos2d::Vec2> _mirrorAblePositions;
 	
-
+	//移動したブロックを格納する配列
+	cocos2d::Vector<Blocks*> _moveBlocks;
 
 	//引数に渡されたStage上の座標をマップ座標に変換するメソッド
 	cocos2d::Vec2 BlockVecConvert(cocos2d::Vec2 blockAncorVecs);
@@ -138,7 +139,8 @@ public:
 		AIR = 0 << 0,
 		BLOCKS = 1 << 0,
 		PLAYER = 2 << 0,
-		NONE = 3 << 0
+		NONE = 3 << 0,
+		EMPTY = 4 <<0
 	};
 
 	void onResult();

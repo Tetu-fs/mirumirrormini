@@ -96,24 +96,33 @@ void Stage::moveBlockX(Blocks* mirrorBlock, Vec2 mirrorPosition)
 
 	mirrorMove = StageVecConvertX(_standBlockPosition.x - diffPosition);
 	MoveTo* moveAction = MoveTo::create(0.2, Vec2(mirrorMove, mirrorBlock->getPosition().y));
-
+	
 	if (_player->rightFlag == true && _standBlockPosition.x < mirrorPosition.x)
 	{
+		_moveBlocks.pushBack(mirrorBlock);
 		mirrorBlock->runAction(moveAction);
 		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
 	else if (_player->rightFlag == false && _standBlockPosition.x > mirrorPosition.x)
 	{
+		_moveBlocks.pushBack(mirrorBlock);
 		mirrorBlock->runAction(moveAction);
 		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
-
+	
+	for (Blocks* move : _moveBlocks)
+	{
+		if (move->getPosition() == mirrorBlock->getPosition()){
+			move->removeFromParent();
+		}
+	}
+	_moveBlocks.clear();
 	this->scheduleOnce([this](float dt)
 	{
 		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
 		{
+			if (mirrorBlock)
 			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-
 		}
 	}, 0.2, "key");
 	playerDiffPositions.clear();
@@ -561,7 +570,7 @@ Blocks* Stage::BlockGen(int gid)
 	auto physicsBody = PhysicsBody::createBox(Size(16,16));
 	physicsBody->setDynamic(false);
 	physicsBody->setCategoryBitmask(category);
-	physicsBody->setCollisionBitmask(static_cast<int>(TileType::AIR));
+	physicsBody->setCollisionBitmask(static_cast<int>(TileType::NONE));
 	physicsBody->setContactTestBitmask(static_cast<int>(TileType::PLAYER));
 
 	blockGen->setPhysicsBody(physicsBody);
@@ -617,13 +626,13 @@ void Stage::onEnterTransitionDidFinish()
 	{
 		mainBgmID = experimental::AudioEngine::play2d("sounds/main_bgm.mp3", true, 0.8f);
 		Music::mainMusicID = mainBgmID;
-		log("playBgm %d", mainBgmID);
+		//log("playBgm %d", mainBgmID);
 
 	}
 	if (Music::mainMusicID != mainBgmID)
 	{
 		mainBgmID = Music::mainMusicID;
-		log("noBgm %d", mainBgmID);
+		//log("noBgm %d", mainBgmID);
 	}
 	else
 	{
@@ -859,10 +868,9 @@ void Stage::update(float dt)
 				if (_player->getPosition().x - blockRect.getMinX() > 0 && blockRect.getMaxX() - _player->getPosition().x > 0)
 				{
 					_standBlockPosition = BlockVecConvert(point->getPosition());
-				
+
 					if (_player->rightFlag == true)
 					{
-
 						_player->LRMagicPosition = Vec2(blockRect.getMaxX(), 0);
 					}
 					else
@@ -873,6 +881,28 @@ void Stage::update(float dt)
 					if (_player->upFlag == true)
 					{
 						_player->UDMagicPosition = Vec2(winSize.width/2, blockRect.getMaxY());
+					}
+					else
+					{
+						_player->UDMagicPosition = Vec2(winSize.width / 2, blockRect.getMinY());
+					}
+				}
+				else if (_neighborBlocks.size()==1 && wallFlag==false)
+				{
+					_standBlockPosition = BlockVecConvert(point->getPosition());
+
+					if (_player->rightFlag == true)
+					{
+						_player->LRMagicPosition = Vec2(blockRect.getMaxX(), 0);
+					}
+					else
+					{
+						_player->LRMagicPosition = Vec2(blockRect.getMinX(), 0);
+					}
+
+					if (_player->upFlag == true)
+					{
+						_player->UDMagicPosition = Vec2(winSize.width / 2, blockRect.getMaxY());
 					}
 					else
 					{
@@ -1037,7 +1067,7 @@ bool Stage::initWithLevel(int level)
 			}
 			_neighborBlocks.pushBack(_neighborBlock);
 
-			log("size = %d", _neighborBlocks.size());
+			//log("size = %d", _neighborBlocks.size());
 
 			if (groundTopY <= playerBottomY)
 			{
@@ -1120,13 +1150,13 @@ bool Stage::initWithLevel(int level)
 		{
 			if (_neighborBlocks.contains(outBlock))
 			{
-				if (BlockVecConvert(outBlock->getPosition()).x == playerMapVec.x + 1){
-					_player->stopR = false;
-				}
-				else if (BlockVecConvert(outBlock->getPosition()).x == playerMapVec.x - 1){
-					_player->stopL = false;
-				}
-				log("checkX = %f", outBlock->getPositionX());
+				if (BlockVecConvert(outBlock->getPosition()) == Vec2(playerMapVec.x + 1, playerMapVec.y)){
+						_player->stopR = false;
+					}
+				else if (BlockVecConvert(outBlock->getPosition()) == Vec2(playerMapVec.x - 1, playerMapVec.y)){
+						_player->stopL = false;
+					}
+				
 				_neighborBlocks.eraseObject(outBlock);
 			}
 		}
