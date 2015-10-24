@@ -99,30 +99,25 @@ void Stage::moveBlockX(Blocks* mirrorBlock, Vec2 mirrorPosition)
 	
 	if (_player->rightFlag == true && _standBlockPosition.x < mirrorPosition.x)
 	{
-		_moveBlocks.pushBack(mirrorBlock);
 		mirrorBlock->runAction(moveAction);
+
 		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
 	else if (_player->rightFlag == false && _standBlockPosition.x > mirrorPosition.x)
 	{
-		_moveBlocks.pushBack(mirrorBlock);
 		mirrorBlock->runAction(moveAction);
+
 		mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 	}
 	
-	for (Blocks* move : _moveBlocks)
-	{
-		if (move->getPosition() == mirrorBlock->getPosition()){
-			move->removeFromParent();
-		}
-	}
-	_moveBlocks.clear();
+
 	this->scheduleOnce([this](float dt)
 	{
 		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
 		{
-			if (mirrorBlock)
-			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+			if (mirrorBlock->getPhysicsBody()->getCategoryBitmask() != static_cast<int>(TileType::BLOCKS)){
+				mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
+			}
 		}
 	}, 0.2, "key");
 	playerDiffPositions.clear();
@@ -143,6 +138,8 @@ void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 		if (_standBlockPosition.y > mirrorPosition.y)
 		{
 			mirrorBlock->runAction(moveAction);
+			mirrorBlock->setPosition(Vec2(mirrorBlock->getPosition().x, mirrorMove));
+
 			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 		}
 	}
@@ -151,6 +148,8 @@ void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 		if (_standBlockPosition.y < mirrorPosition.y)
 		{
 			mirrorBlock->runAction(moveAction);
+			mirrorBlock->setPosition(Vec2(mirrorBlock->getPosition().x, mirrorMove));
+
 			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::AIR));
 		}
 	}
@@ -1064,8 +1063,8 @@ bool Stage::initWithLevel(int level)
 		{
 			bool isExist = _neighborBlocks.contains(_neighborBlock);
 			if (!isExist){
+				_neighborBlocks.pushBack(_neighborBlock);
 			}
-			_neighborBlocks.pushBack(_neighborBlock);
 
 			//log("size = %d", _neighborBlocks.size());
 
@@ -1270,13 +1269,13 @@ bool Stage::initWithLevel(int level)
 	this->addChild(guide);
 
 	/*
-	testBlock = Sprite::create("graphics/white.png");
-	testBlock->setPosition(Vec2(0,0));
-	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-	testBlock->setScale(16.0f);
-	testBlock->getTexture()->setAliasTexParameters();
-	testBlock->setZOrder(99);
-	this->addChild(testBlock);
+	*testBlock = Sprite::create("graphics/white.png");
+	*testBlock->setPosition(Vec2(0,0));
+	*testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
+	*testBlock->setScale(16.0f);
+	*testBlock->getTexture()->setAliasTexParameters();
+	*testBlock->setZOrder(99);
+	*this->addChild(testBlock);
 	*/
 	if (_level < MAX_LEVEL)
 	{
