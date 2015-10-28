@@ -27,8 +27,7 @@ public:
 	void jump();
 	void playAnimation(int index);
 
-
-
+	cocos2d::Rect playerRect;
 
 
 	CREATE_FUNC(Player);

@@ -27,10 +27,10 @@ bool Player::init()
 	{
 		return false;
 	}
-	cocos2d::Point PBox[8]{cocos2d::Point(-2, -12), cocos2d::Point(-4, -10), cocos2d::Point(-4, -2), cocos2d::Point(-2, 0), cocos2d::Point(2, 0), cocos2d::Point(4, -2), cocos2d::Point(4, -10), cocos2d::Point(2, -12)};
-	//cocos2d::Point PBox[4]{cocos2d::Point(-4, -12), cocos2d::Point(-4, 0), cocos2d::Point(4, 0), cocos2d::Point(4, -12)};
+	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 
-	//auto body = PhysicsBody::createEdgePolygon(PBox, 4,PHYSICSBODY_MATERIAL_DEFAULT,0.5f);
+	cocos2d::Point PBox[8]{cocos2d::Point(-2, -12), cocos2d::Point(-4, -10), cocos2d::Point(-4, -2), cocos2d::Point(-2, 0), cocos2d::Point(2, 0), cocos2d::Point(4, -2), cocos2d::Point(4, -10), cocos2d::Point(2, -12)};
+	playerRect = Rect();
 	auto body = PhysicsBody::createPolygon(PBox, 8);
 	body->setEnable(true);
 	body->setDynamic(true);
@@ -39,7 +39,6 @@ bool Player::init()
 	body->setVelocityLimit(30.0);
 	body->setCategoryBitmask(static_cast<int>(Stage::TileType::PLAYER));
 	//BLOCKS‚Æ‚ÌÚG”»’è‚ðON
-	//body->setCollisionBitmask(static_cast<int>(Stage::TileType::BLOCKS));
 	body->setCollisionBitmask(static_cast<int>(Stage::TileType::EMPTY));
 	body->setContactTestBitmask(static_cast<int>(Stage::TileType::BLOCKS));
 
@@ -47,7 +46,6 @@ bool Player::init()
 
 	this->setPhysicsBody(body);
 
-	this->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	this->scheduleUpdate();
 	return true;
 }
