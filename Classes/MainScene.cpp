@@ -20,8 +20,6 @@ Scene* MainScene::createSceneWithLevel(int level)
 
 	auto world = scene->getPhysicsWorld();
 	
-	//world->setUpdateRate(2);
-
 	world->setGravity(GRAVITY_ACCELERATION);
 
 #if COCOS2D_DEBUG > 0

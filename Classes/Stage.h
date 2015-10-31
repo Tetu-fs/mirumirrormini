@@ -95,9 +95,6 @@ protected:
 	//現在たっているブロックのマップ座標
 	cocos2d::Vec2 _standBlockPosition;
 
-	//現在接触しているブロックを格納する配列
-	cocos2d::Vector<Blocks*> _neighborBlocks;
-
 	//反射ブロックを格納する配列
 	cocos2d::Vector<Blocks*> _mirrorAbleBlocks;
 
@@ -153,6 +150,7 @@ public:
 	Magic* sideMirrorEffect();
 	Magic* upDownMirrorEffect();
 
+	cocos2d::Sprite* spr2;
 
 	//gidによってタイルを切り出し表示するメソッド
 	Blocks* BlockGen(int gid);

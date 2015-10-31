@@ -16,7 +16,6 @@ protected:
 
 public:
 
-	//static cocos2d::Scene* createScene();
 
 	CC_SYNTHESIZE_RETAIN(Stage*, _stage, Stage);
 
