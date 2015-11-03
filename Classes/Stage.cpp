@@ -1,7 +1,8 @@
 ﻿#include "Stage.h"
 #include "MainScene.h"
 #include "TitleScene.h"
-#include"AudioManager.h"
+#include "clearScene.h"
+#include "AudioManager.h"
 
 USING_NS_CC;
 //using namespace experimental;
@@ -9,7 +10,7 @@ USING_NS_CC;
 const Vec2 JUMP_IMPULSE = Vec2(0, 260);
 const int MAPCHIP_SIZE = 16;
 const float MAP_HEIGHT = 14;
-const int MAX_LEVEL = 9;
+const int MAX_LEVEL = 10;
 
 const char* STAGE_FILE = "graphics/stage%d.tmx";
 
@@ -300,10 +301,11 @@ void Stage::playerMove()
 				{
 					experimental::AudioEngine::stop(mainBgmID);
 
-					auto titleScene = TitleScene::createScene();
-					auto titleTransition = TransitionFade::create(1.0f, titleScene);
+					auto clearScene = clearScene::createScene();
+					auto titleTransition = TransitionFade::create(2.0f, clearScene);
 					Director::getInstance()->replaceScene(titleTransition);
 				}
+
 			}
 		}
 
@@ -768,6 +770,7 @@ void Stage::update(float dt)
 					if ((int)playerRect.getMinY() - (int)blockRect.getMaxY() <= 0
 						&& (int)playerRect.getMinY() - (int)blockRect.getMaxY() >= -1){
 						if (_prevPosition.y > _player->getPositionY()){
+
 							setJumpFlag(true);
 							_player->getPhysicsBody()->setGravityEnable(false);
 							_player->getPhysicsBody()->setVelocity(Vec2(0, 0));
@@ -1001,11 +1004,6 @@ void Stage::onResult()
 	{
 		clearNext->setVisible(true);
 	}
-	else
-	{
-		clearTitle->setVisible(true);
-	}
-
 }
 
 //メイン
@@ -1083,7 +1081,7 @@ bool Stage::initWithLevel(int level)
 
 				if (tileID == 4)
 				{
-					_blockGen->setLocalZOrder(5);
+					_blockGen->setLocalZOrder(3);
 					_mirrorAbleBlocks.pushBack(_blockGen);
 				}
 				if (tileID == 10)
@@ -1103,7 +1101,7 @@ bool Stage::initWithLevel(int level)
 	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	luk->setPosition(Vec2(56, 92));
 	luk->getTexture()->setAliasTexParameters();
-	luk->setLocalZOrder(10);
+	//luk->setLocalZOrder(10);
 	_player->playAnimation(0);
 	this->addChild(luk);
 
@@ -1116,7 +1114,7 @@ bool Stage::initWithLevel(int level)
 	guide->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
-	
+	/*
 	testBlock = Sprite::create("graphics/white.png");
 	testBlock->setPosition(Vec2(0,0));
 	testBlock->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
@@ -1124,22 +1122,16 @@ bool Stage::initWithLevel(int level)
 	testBlock->getTexture()->setAliasTexParameters();
 	testBlock->setZOrder(99);
 	this->addChild(testBlock);
-	
+	*/
 	if (_level < MAX_LEVEL)
 	{
 		clearNext = Sprite::create("graphics/clear_next.png");
 		clearNext->setPosition(Vec2(winSize.width / 2, winSize.height / 2));
 		clearNext->setVisible(false);
 		clearNext->getTexture()->setAliasTexParameters();
+		clearNext->setLocalZOrder(4);
+
 		this->addChild(clearNext);
-	}
-	else
-	{
-		clearTitle = Sprite::create("graphics/clear_title.png");
-		clearTitle->setPosition(Vec2(winSize.width / 2, winSize.height / 2));
-		clearTitle->setVisible(false);
-		clearTitle->getTexture()->setAliasTexParameters();
-		this->addChild(clearTitle);
 	}
 
 	this->scheduleUpdate();

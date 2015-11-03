@@ -119,8 +119,6 @@ protected:
 
 	//クリア後の表示
 	cocos2d::Sprite* clearNext;
-	cocos2d::Sprite* clearTitle;
-
 	//Blocksクラスの変数_blockGen　ブロックの生成メソッドを代入
 	Blocks* _blockGen;
 	//最後に押されたキー
