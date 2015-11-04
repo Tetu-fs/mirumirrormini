@@ -163,6 +163,9 @@ public:
 	CC_SYNTHESIZE_RETAIN(cocos2d::TMXTiledMap*, _tiledMap, TiledMap);
 	CC_SYNTHESIZE_RETAIN(Player*, _player, Player);
 	CC_SYNTHESIZE_RETAIN(Blocks*, _blocks, Blocks);
+
+	CC_SYNTHESIZE_RETAIN(cocos2d::Label*, _stageCount, StageCount);
+
 	CC_SYNTHESIZE(GameState, _state, State);
 
 	static Stage* createWithLevel(int level);

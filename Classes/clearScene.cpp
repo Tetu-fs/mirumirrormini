@@ -48,17 +48,23 @@ bool clearScene::init()
 	background1->setPosition(Vec2(0, 0));
 	background1->getTexture()->setAliasTexParameters();
 
-
 	this->addChild(background1);
+
+	auto background2 = Sprite::create("graphics/gameclear_2.png");
+	background2->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
+	background2->setPosition(Vec2(0, 0));
+	background2->getTexture()->setAliasTexParameters();
+
+	this->addChild(background2);
+
+	background2->runAction(RepeatForever::create(Blink::create(1, 4)));
 
 	Sprite* clearTitle = Sprite::create("graphics/clear_title.png");
 	clearTitle->setPosition(Vec2(80, 32));
 	clearTitle->getTexture()->setAliasTexParameters();
-
 	this->addChild(clearTitle);
-
+ 
 	auto keyboardListener = EventListenerKeyboard::create();
-
 	//キーボードが押された時のstopを書く関数？
 	keyboardListener->onKeyPressed = [this](EventKeyboard::KeyCode keyCode, Event *event)
 	{

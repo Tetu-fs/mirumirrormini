@@ -51,7 +51,6 @@ bool MainScene::initWithLevel(int level)
 	{
 		return false;
 	}
-
 	auto stage = Stage::createWithLevel(level);
 	this->setStage(stage);
 	this->addChild(stage);

@@ -10,7 +10,7 @@ USING_NS_CC;
 const Vec2 JUMP_IMPULSE = Vec2(0, 260);
 const int MAPCHIP_SIZE = 16;
 const float MAP_HEIGHT = 14;
-const int MAX_LEVEL = 10;
+const int MAX_LEVEL = 15;
 
 const char* STAGE_FILE = "graphics/stage%d.tmx";
 
@@ -18,6 +18,10 @@ Stage::Stage()
 	: _tiledMap(nullptr)
 	, _player(nullptr)
 	, _blocks(nullptr)
+	, _sideMagic(nullptr)
+	, _upDownMagic(nullptr)
+	, _stageCount(nullptr)
+
 	, leftPressFlag(false)
 	, rightPressFlag(false)
 	, upPressFlag(false)
@@ -26,11 +30,8 @@ Stage::Stage()
 	, magicUse(true)
 	, moveFlag(false)
 	, wallFlag(false)
+
 	, _state(GameState::PLAYING)
-
-	, _sideMagic(nullptr)
-	, _upDownMagic(nullptr)
-
 	, _lastKeyCode(EventKeyboard::KeyCode::KEY_NONE)
 
 	, playerX(0)
@@ -60,7 +61,8 @@ Stage::~Stage()
 	CC_SAFE_RELEASE_NULL(_player);
 	CC_SAFE_RELEASE_NULL(_tiledMap);
 	CC_SAFE_RELEASE_NULL(_blocks);
-	_jumpFlag = false;
+	CC_SAFE_RELEASE_NULL(_stageCount);
+
 	_mirrorAblePositions.clear();
 }
 
@@ -106,24 +108,12 @@ void Stage::moveBlockX(Blocks* mirrorBlock, Vec2 mirrorPosition)
 	{
 		mirrorBlock->runAction(moveAction);
 	}
-
-	this->scheduleOnce([this](float dt)
-	{
-		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-		{
-			if (mirrorBlock->getPhysicsBody()->getCategoryBitmask() != static_cast<int>(TileType::BLOCKS)){
-				mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-			}
-		}
-	}, 0.2, "key");
 	playerDiffPositions.clear();
 }
 
 //縦反射の挙動
 void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 {
-	log("standY = %f", _standBlockPosition.y);
-
 	std::vector<float> playerDiffPositions;
 	float diffPosition = mirrorPosition.y - _standBlockPosition.y;
 	playerDiffPositions.push_back(diffPosition);
@@ -143,14 +133,6 @@ void Stage::moveBlockY(Blocks* mirrorBlock, Vec2 mirrorPosition)
 			mirrorBlock->runAction(moveAction);
 		}
 	}
-
-	this->scheduleOnce([this](float dt)
-	{
-		for (Blocks* mirrorBlock : _mirrorAbleBlocks)
-		{
-			mirrorBlock->getPhysicsBody()->setCategoryBitmask(static_cast<int>(TileType::BLOCKS));
-		}
-	}, 0.2, "key");
 	playerDiffPositions.clear();
 }
 
@@ -302,7 +284,7 @@ void Stage::playerMove()
 					experimental::AudioEngine::stop(mainBgmID);
 
 					auto clearScene = clearScene::createScene();
-					auto titleTransition = TransitionFade::create(2.0f, clearScene);
+					auto titleTransition = TransitionFade::create(3.0f, clearScene, Color3B(255,255,255));
 					Director::getInstance()->replaceScene(titleTransition);
 				}
 
@@ -366,7 +348,6 @@ void Stage::playerMove()
 						{
 							for (Vec2 mirrorPosition : _mirrorAblePositions)
 							{
-								log("MY = %f", mirrorPosition.y);
 								moveBlockY(mirrorBlock, mirrorPosition);
 							}
 
@@ -595,13 +576,11 @@ void Stage::onEnterTransitionDidFinish()
 	{
 		mainBgmID = experimental::AudioEngine::play2d("sounds/main_bgm.mp3", true, 0.8f);
 		Music::mainMusicID = mainBgmID;
-		//log("playBgm %d", mainBgmID);
 
 	}
 	if (Music::mainMusicID != mainBgmID)
 	{
 		mainBgmID = Music::mainMusicID;
-		//log("noBgm %d", mainBgmID);
 	}
 	else
 	{
@@ -768,7 +747,7 @@ void Stage::update(float dt)
 				if (playerMapVec.y + 1 == convertBlockMapVec.y){
 
 					if ((int)playerRect.getMinY() - (int)blockRect.getMaxY() <= 0
-						&& (int)playerRect.getMinY() - (int)blockRect.getMaxY() >= -1){
+						&& (int)playerRect.getMinY() - (int)blockRect.getMaxY() >= -2){
 						if (_prevPosition.y > _player->getPositionY()){
 
 							setJumpFlag(true);
@@ -823,8 +802,8 @@ void Stage::update(float dt)
 			if (playerMapVec.y == convertBlockMapVec.y){
 				//右
 				if (playerMapVec.x + 1 == convertBlockMapVec.x){
-					if ((int)playerRect.getMaxX() - (int)blockRect.getMinX() >= -1
-						&& (int)playerRect.getMaxX() - (int)blockRect.getMinX() <= 1){
+					if ((int)playerRect.getMaxX() - (int)blockRect.getMinX() >= -2
+						&& (int)playerRect.getMaxX() - (int)blockRect.getMinX() <= 0){
 
 						_player->stopR = true;
 						break;
@@ -871,8 +850,8 @@ void Stage::update(float dt)
 					|| (playerMapVec.y + 1 == convertBlockMapVec.y && playerRect.getMinY() < blockRect.getMaxY())){
 					//右
 					if (playerMapVec.x + 1 == convertBlockMapVec.x){
-						if ((int)playerRect.getMaxX() - (int)blockRect.getMinX() >= -1
-							&& (int)playerRect.getMaxX() - (int)blockRect.getMinX() <= 1){
+						if ((int)playerRect.getMaxX() - (int)blockRect.getMinX() >= -2
+							&& (int)playerRect.getMaxX() - (int)blockRect.getMinX() <= 0){
 							_player->stopR = true;
 							break;
 						}
@@ -1018,7 +997,8 @@ bool Stage::initWithLevel(int level)
 
 	//画面サイズ取得
 	cocos2d::Size winSize = Director::getInstance()->getWinSize();
-	
+
+
 	//背景表示
 	auto background1 = Sprite::create("graphics/sky.png");
 	background1->setAnchorPoint(Vec2::ANCHOR_BOTTOM_LEFT);
@@ -1081,7 +1061,7 @@ bool Stage::initWithLevel(int level)
 
 				if (tileID == 4)
 				{
-					_blockGen->setLocalZOrder(3);
+					_blockGen->setLocalZOrder(2);
 					_mirrorAbleBlocks.pushBack(_blockGen);
 				}
 				if (tileID == 10)
@@ -1101,7 +1081,7 @@ bool Stage::initWithLevel(int level)
 	luk->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
 	luk->setPosition(Vec2(56, 92));
 	luk->getTexture()->setAliasTexParameters();
-	//luk->setLocalZOrder(10);
+	luk->setLocalZOrder(3);
 	_player->playAnimation(0);
 	this->addChild(luk);
 
@@ -1110,7 +1090,7 @@ bool Stage::initWithLevel(int level)
 	playerMove(); 
 
 	Sprite* guide = Sprite::create("graphics/mainguide.png");
-	guide->setPosition(Vec2(5, 210));
+	guide->setPosition(Vec2(2, winSize.height - 12));
 	guide->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
 	guide->getTexture()->setAliasTexParameters();
 	this->addChild(guide);
@@ -1123,6 +1103,23 @@ bool Stage::initWithLevel(int level)
 	testBlock->setZOrder(99);
 	this->addChild(testBlock);
 	*/
+
+	Sprite* stageLabel = Sprite::create("graphics/stage.png");
+	stageLabel->setPosition(Vec2(172, winSize.height - 12));
+	stageLabel->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
+	stageLabel->getTexture()->setAliasTexParameters();
+
+	this->addChild(stageLabel);
+
+	auto label = Label::createWithCharMap("graphics/num.png",7,12,'0');
+	this->addChild(label);
+	label->setAnchorPoint(Vec2::ANCHOR_MIDDLE_LEFT);
+	label->setPosition(Vec2(210, winSize.height - 12));
+	label->getTexture()->setAliasTexParameters();
+
+	this->setStageCount(label);
+	this->getStageCount()->setString(StringUtils::toString(_level));
+
 	if (_level < MAX_LEVEL)
 	{
 		clearNext = Sprite::create("graphics/clear_next.png");
