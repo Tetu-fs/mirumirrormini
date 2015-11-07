@@ -142,6 +142,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y</Command>
     <ClCompile Include="..\Classes\AppDelegate.cpp" />
     <ClCompile Include="..\Classes\AudioManager.cpp" />
     <ClCompile Include="..\Classes\Blocks.cpp" />
+    <ClCompile Include="..\Classes\clearScene.cpp" />
     <ClCompile Include="..\Classes\Magic.cpp" />
     <ClCompile Include="..\Classes\MainScene.cpp" />
     <ClCompile Include="..\Classes\Player.cpp" />
@@ -153,6 +154,7 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y</Command>
     <ClInclude Include="..\Classes\AppDelegate.h" />
     <ClInclude Include="..\Classes\AudioManager.h" />
     <ClInclude Include="..\Classes\Blocks.h" />
+    <ClInclude Include="..\Classes\clearScene.h" />
     <ClInclude Include="..\Classes\Magic.h" />
     <ClInclude Include="..\Classes\MainScene.h" />
     <ClInclude Include="..\Classes\Player.h" />
@@ -176,17 +178,48 @@ xcopy "$(ProjectDir)..\Resources" "$(OutDir)" /D /E /I /F /Y</Command>
     <ResourceCompile Include="game.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\Resources\graphics\clear_next.png" />
+    <Image Include="..\Resources\graphics\clear_title.png" />
     <Image Include="..\Resources\graphics\cloud.png" />
+    <Image Include="..\Resources\graphics\ESC.png" />
     <Image Include="..\Resources\graphics\game.ico" />
+    <Image Include="..\Resources\graphics\gameclear.png" />
+    <Image Include="..\Resources\graphics\gameclear_2.png" />
+    <Image Include="..\Resources\graphics\gradient.png" />
     <Image Include="..\Resources\graphics\luk_sprite.png" />
+    <Image Include="..\Resources\graphics\mainguide.png" />
     <Image Include="..\Resources\graphics\mapchip_00.png" />
     <Image Include="..\Resources\graphics\mmm_logo.png" />
+    <Image Include="..\Resources\graphics\num.png" />
+    <Image Include="..\Resources\graphics\reflex.png" />
+    <Image Include="..\Resources\graphics\Retry.png" />
     <Image Include="..\Resources\graphics\sky.png" />
+    <Image Include="..\Resources\graphics\stage.png" />
+    <Image Include="..\Resources\graphics\titleguide.png" />
+    <Image Include="..\Resources\graphics\wave.png" />
     <Image Include="..\Resources\graphics\white.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\Resources\graphics\ground2.tmx" />
     <None Include="..\Resources\graphics\stage1.tmx" />
+    <None Include="..\Resources\graphics\stage10.tmx" />
+    <None Include="..\Resources\graphics\stage11.tmx" />
+    <None Include="..\Resources\graphics\stage12.tmx" />
+    <None Include="..\Resources\graphics\stage13.tmx" />
+    <None Include="..\Resources\graphics\stage14.tmx" />
+    <None Include="..\Resources\graphics\stage15.tmx" />
+    <None Include="..\Resources\graphics\stage16.tmx" />
+    <None Include="..\Resources\graphics\stage17.tmx" />
+    <None Include="..\Resources\graphics\stage18.tmx" />
     <None Include="..\Resources\graphics\stage2.tmx" />
+    <None Include="..\Resources\graphics\stage20.tmx" />
+    <None Include="..\Resources\graphics\stage3.tmx" />
+    <None Include="..\Resources\graphics\stage4.tmx" />
+    <None Include="..\Resources\graphics\stage5.tmx" />
+    <None Include="..\Resources\graphics\stage6.tmx" />
+    <None Include="..\Resources\graphics\stage7.tmx" />
+    <None Include="..\Resources\graphics\stage8.tmx" />
+    <None Include="..\Resources\graphics\stage9.tmx" />
   </ItemGroup>
   <ItemGroup>
     <Media Include="..\Resources\sounds\main_bgm.mp3" />

@@ -5,11 +5,10 @@
 
 USING_NS_CC;
 
-const int INITIAL_LEVEL = 6;
+const int INITIAL_LEVEL = 1;
 
 Scene *TitleScene::createScene()
 {
-
 	auto scene = Scene::create();
 	auto layer = TitleScene::create();
 	scene->addChild(layer);

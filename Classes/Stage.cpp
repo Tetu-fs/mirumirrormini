@@ -10,7 +10,7 @@ USING_NS_CC;
 const Vec2 JUMP_IMPULSE = Vec2(0, 260);
 const int MAPCHIP_SIZE = 16;
 const float MAP_HEIGHT = 14;
-const int MAX_LEVEL = 15;
+const int MAX_LEVEL = 20;
 
 const char* STAGE_FILE = "graphics/stage%d.tmx";
 
@@ -747,7 +747,7 @@ void Stage::update(float dt)
 				if (playerMapVec.y + 1 == convertBlockMapVec.y){
 
 					if ((int)playerRect.getMinY() - (int)blockRect.getMaxY() <= 0
-						&& (int)playerRect.getMinY() - (int)blockRect.getMaxY() >= -2){
+						&& (int)playerRect.getMinY() - (int)blockRect.getMaxY() >= -3){
 						if (_prevPosition.y > _player->getPositionY()){
 
 							setJumpFlag(true);

@@ -39,6 +39,9 @@
     <ClCompile Include="..\Classes\AudioManager.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\Classes\clearScene.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -66,6 +69,9 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\Classes\AudioManager.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Classes\clearScene.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -96,12 +102,105 @@
     <Image Include="..\Resources\graphics\mmm_logo.png">
       <Filter>resource</Filter>
     </Image>
+    <Image Include="..\Resources\graphics\clear_next.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\clear_title.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\ESC.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\gameclear.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\gameclear_2.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\gradient.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\mainguide.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\num.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\reflex.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\Retry.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\stage.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\titleguide.png">
+      <Filter>resource</Filter>
+    </Image>
+    <Image Include="..\Resources\graphics\wave.png">
+      <Filter>resource</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Resources\graphics\stage1.tmx">
       <Filter>resource</Filter>
     </None>
     <None Include="..\Resources\graphics\stage2.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\ground2.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage3.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage4.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage5.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage6.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage7.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage8.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage9.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage10.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage11.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage12.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage13.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage14.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage15.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage16.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage17.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage18.tmx">
+      <Filter>resource</Filter>
+    </None>
+    <None Include="..\Resources\graphics\stage20.tmx">
       <Filter>resource</Filter>
     </None>
   </ItemGroup>
