@@ -526,7 +526,7 @@ Blocks* Stage::BlockGen(int gid)
 	blockGen->setPhysicsBody(physicsBody);
 	_allBlocks.pushBack(blockGen);
 	}
-	auto tileSize = cocos2d::Size(5, 4);
+	auto tileSize = cocos2d::Size(5, 3);
 	const int X_MAX = tileSize.width;
 
 	rectX = ((gid - 1) % X_MAX + 1) - 1;
