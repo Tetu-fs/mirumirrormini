@@ -64,6 +64,8 @@ Stage::~Stage()
 	CC_SAFE_RELEASE_NULL(_stageCount);
 
 	_mirrorAblePositions.clear();
+	_allBlocks.clear();
+
 }
 
 Stage* Stage::createWithLevel(int level)
@@ -321,8 +323,7 @@ void Stage::playerMove()
 				{
 					magicUse = true;
 				}, 0.2, "key");
-
-
+				
 			}
 			if (magicUse == true && moveFlag == false)
 			{
@@ -719,7 +720,6 @@ void Stage::update(float dt)
 						}
 						magicUse = false;
 					}
-
 				}
 				_player->playAnimation(0);
 			}

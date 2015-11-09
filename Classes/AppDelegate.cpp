@@ -34,7 +34,7 @@ bool AppDelegate::applicationDidFinishLaunching() {
     auto director = Director::getInstance();
     auto glview = director->getOpenGLView();
     if(!glview) {
-		glview = GLViewImpl::createWithRect("MyGame", cocos2d::Rect(0, 0, 384, 224), 2.0);
+		glview = GLViewImpl::createWithRect("みるみらミニ　-MiruMirror Mini-", cocos2d::Rect(0, 0, 384, 224), 2.0);
         director->setOpenGLView(glview);
     }
  //すべての端末で画面サイズを320*240として扱う
